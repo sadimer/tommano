@@ -1,0 +1,382 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+imports:
+ - /home/sadimer/Desktop/ISPRAS/nfv_tosca_translator/definitions/nfv_definintion_1_0.yaml
+ 
+topology_template:
+  node_templates:
+    my_vdu:
+      type: nfv.nodes.VDU
+      properties:
+        vduId: vdu_0
+        name: vdu_0
+        description: simple vdu
+        virtualComputeDesc:
+          virtualComputeDescId: vc_0
+          virtualCpu: 
+            numVirtualCpu: 1
+            cpuArchitecture: x86
+          virtualMemory: 
+            virtualMemSize: 1024 MiB
+        virtualStorageDesc:
+          id: sd_0
+          typeOfStorage: object
+          sizeOfStorage: 50 GiB
+          swImageDesc:
+            id: sw_0
+            version: v4.1 
+            checksum: some checksum
+            minDisk: 20 GiB
+            size: 2.55 GiB
+            operatingSystem: cumulus_vx
+            swImage: some url
+            diskFormat: qcow2
+            containerFormat: BARE
+        swImageDesc:
+          id: sw_0
+          version: v4.1 
+          checksum: some checksum
+          minDisk: 20 GiB
+          size: 2.55 GiB
+          operatingSystem: cumulus_vx
+          swImage: some url
+          diskFormat: qcow2
+          containerFormat: BARE
+    my_vl:
+      type: nfv.nodes.VnfVirtualLinkDesc
+      properties:
+        virtualLinkDescId: vl_0
+        connectivityType:
+          layerProtocol: IPV4
+        virtualLinkDescFlavour:
+          flavourId: fl_vl_0
+        cidrData: # необязательный параметр, но проверить надо
+          networkName: my_net
+          cidr: 192.168.2.0/24
+          startIp: 192.168.2.10
+          endIp: 192.168.2.100
+          gatewayIp: 192.168.2.1
+          networkType: geneve 
+      description: simple vl description
+      
+    my_int_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+        layerProtocol: { get_property: [ my_vl, connectivityType, layerProtocol ] }
+        description: simple cpd description
+        addressData:
+          addressType: IP
+          l2AddressData:
+            macAddressAssignment: true
+            macAddress: 50:46:5D:6E:8C:20
+          l3AddressData:
+            iPAddressAssignment: true
+            iPAddress: 192.168.2.11
+            floatingIpActivated: false
+            iPAddressType: IPV4
+            numberOfIpAddress: 1
+        virtualNetworkInterfaceRequirements:
+          name: test_requirements
+          supportMandatory: true
+          requirement: requirements
+      requirements:
+        - intCpd: my_vdu
+        - intVirtualLinkDesc: my_vl
+        
+    my_ext_cpd:
+      type: nfv.nodes.VnfExtCpd
+      requirements:
+        - VDUCpd: my_int_cpd
+        - intVirtualLinkDesc: my_vl
+        
+    my_firewall:
+      type: nfv.nodes.VNFD.Firewall
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: firewall
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
+        modifiableAttributes:
+          extension: 
+            standart_rules:
+              - action: ACCEPT
+                protocol: tcp
+                routingPath: FORWARD
+                sourceAddr: 10.10.10.10
+                destAddr: 8.8.8.8
+                sourcePort: 22
+                destPort: 2202
+            dpi_rules:
+              - action: DROP
+                deepProtocol: youtube
+                routingPath: FORWARD
+                sourceAddr: 10.10.10.10
+                destAddr: 8.8.8.8
+          metadata: some_script.yaml
+          
+    my_nat:
+      type: nfv.nodes.VNFD.Nat
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: nat
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
+        modifiableAttributes:
+          extension:
+            rules:
+              - typeNat: static
+                routingType: snat
+                sourceAddr: 10.10.10.10
+                destAddr: 8.8.8.8
+                protocol: tcp
+          metadata: some_script.yaml
+          
+    my_dhcp:
+      type: nfv.nodes.VNFD.DHCP
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: DHCP
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
+        modifiableAttributes:
+          extension:
+            defaultLeaseTime: 600
+            maxLeaseTime: 7200
+            internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
+            rangeStart: { get_property: [ my_vl, cidrData, startIp ] }
+            rangeEnd: { get_property: [ my_vl, cidrData, endIp ] }
+            staticHosts: 
+              host1: 192.168.2.50
+              host2: 192.168.2.51
+          metadata: some_script.yaml
+          
+    my_dns:
+      type: nfv.nodes.VNFD.DNS
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: DNS
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
+        modifiableAttributes:
+          extension:
+            internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
+            staticHosts:  
+              host1: 192.168.2.50
+              host2: 192.168.2.51
+            domainName: example.com
+            forwarders:
+              google1: 8.8.8.8
+            iPAddressType: IPV4   
+          metadata: some_script.yaml
+        
+    my_tshark:
+      type: nfv.nodes.VNFD.Tshark_analize
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: Tshark_analize
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
+        modifiableAttributes:
+          extension:
+            duration: 10000
+            files: 1
+            pathToPcap: /tmp/dump.pcap
+            interfaceName: swp1
+            captureFilter: dst port 135 and tcp port 135 and ip[2:2]==48
+          metadata: some_script.yaml  
+          
+    my_ntop:
+      type: nfv.nodes.VNFD.Ntop_analize
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: Ntop_analize
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
+        modifiableAttributes:
+          extension:
+            endpointPort: 3000
+            internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
+            interfacesNames:
+              - eth0
+          metadata: some_script.yaml  
+          
+    my_routing:
+      type: nfv.nodes.VNFD.Routing
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: Routing
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
+        modifiableAttributes:
+          extension:
+            rules:
+              - sourceAddr: 0.0.0.0
+                destAddr: 0.0.0.0
+            routes:
+              - destCidr: { get_property: [ my_vl, cidrData, cidr ] }
+                gateway: { get_property: [ my_vl, cidrData, gatewayIp ] }
+                cidr: 0.0.0.0/0
+                dev: eth0
+          metadata: some_script.yaml  
