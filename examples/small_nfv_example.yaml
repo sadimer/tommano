@@ -1,0 +1,47 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+imports:
+ - /home/sadimer/Desktop/ISPRAS/nfv_tosca_translator/definitions/nfv_definintion_1_0.yaml
+ 
+topology_template:
+  node_templates:
+    my_vdu:
+      type: nfv.nodes.VDU
+      properties:
+        virtualComputeDesc:
+          virtualCpu: 
+            numVirtualCpu: 1
+            cpuArchitecture: x86
+          virtualMemory: 
+            virtualMemSize: 1024 MiB
+        virtualStorageDesc:
+          sizeOfStorage: 50 GiB
+          
+    my_vl:
+      type: nfv.nodes.VnfVirtualLinkDesc
+      
+    my_int_cpd:
+      type: nfv.nodes.VDUCpd
+      requirements:
+        - intCpd: my_vdu
+        - intVirtualLinkDesc: my_vl
+        
+    my_ext_cpd:
+      type: nfv.nodes.VnfExtCpd
+      requirements:
+        - VDUCpd: my_int_cpd
+        - intVirtualLinkDesc: my_vl
+        
+    my_routing:
+      type: nfv.nodes.VNFD.Routing
+      properties:
+        modifiableAttributes:
+          extension:
+            rules:
+              - sourceAddr: 0.0.0.0
+                destAddr: 0.0.0.0
+            routes:
+              - destCidr: 0.0.0.0/0
+                gateway: 1.1.1.1
+                cidr: 0.0.0.0/0
+                dev: eth0

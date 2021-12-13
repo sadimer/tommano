@@ -178,11 +178,11 @@ node_types:
         type: string
         required: false
       connectivityType:
-        type: nfv.datatypes.ConnectivityType
-        required: true
+        type: nfv.datatypes.VnfVirtualLinkDesc.ConnectivityType
+        required: false
       virtualLinkDescFlavour:
-        type: nfv.datatypes.VirtualLinkDescFlavour
-        required: true
+        type: nfv.datatypes.VnfVirtualLinkDesc.VirtualLinkDescFlavour
+        required: false
       cidrData:
         type: nfv.datatypes.CidrData
         required: false
@@ -199,17 +199,17 @@ data_types:
     properties:
       virtualMemSize:
         type: scalar-unit.size
-        default: 1024 MiB
+        required: true
         
   nfv.datatypes.virtualComputeDesc.VirtualCpuData:
     derived_from: tosca.datatypes.Root
     properties:
       numVirtualCpu:
         type: integer
-        default: 1
+        required: true
       cpuArchitecture:
         type: string
-        default: x86
+        required: true
         constraints:
           - valid_values: [ x86, x86_64, arm ]
           
@@ -234,22 +234,22 @@ data_types:
         required: false
       version: 
         type: string
-        required: true
+        required: false
       checksum: 
         type: string
-        required: true
+        required: false
       minDisk: 
         type: scalar-unit.size
         default: 20 GiB
       size:
         type: scalar-unit.size
-        required: true
+        required: false
       operatingSystem:
         type: string
         default: cumulus_vx
       swImage:
         type: string
-        required: true
+        required: false
       diskFormat:
         type: string
         default: qcow2
@@ -272,7 +272,7 @@ data_types:
           - valid_values: [ object, volume ]
       sizeOfStorage:
         type: scalar-unit.size
-        default: 50 GiB
+        required: true
         constraints: 
            - in_range: [ 20 GiB, 200 GiB ]
       swImageDesc:
@@ -610,66 +610,66 @@ data_types:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Nat
 
   nfv.datatypes.VnfInfoModifiableAttributes.Firewall:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall
             
   nfv.datatypes.VnfInfoModifiableAttributes.QoS:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.QoS
           
   nfv.datatypes.VnfInfoModifiableAttributes.DNS:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.DNS
           
   nfv.datatypes.VnfInfoModifiableAttributes.DHCP:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.DHCP
           
   nfv.datatypes.VnfInfoModifiableAttributes.Routing:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Routing
           
   nfv.datatypes.VnfInfoModifiableAttributes.Tshark_analize:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Tshark_analize
           
   nfv.datatypes.VnfInfoModifiableAttributes.Ntop_analize:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Ntop_analize
         
   nfv.datatypes.VnfInfoModifiableAttributes.SpamVirus:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
-          required: false
+          required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.SpamVirus  
             
-  nfv.datatypes.ConnectivityType:
+  nfv.datatypes.VnfVirtualLinkDesc.ConnectivityType:
     derived_from: tosca.datatypes.Root
     properties:
       layerProtocol: 
@@ -678,7 +678,7 @@ data_types:
         constraints:
           - valid_values: [ Ethernet, MPLS, ODU2, IPV4, IPV6, Pseudo-Wire ]
           
-  nfv.datatypes.VirtualLinkDescFlavour:
+  nfv.datatypes.VnfVirtualLinkDesc.VirtualLinkDescFlavour:
     derived_from: tosca.datatypes.Root
     properties:
       flavourId: 
