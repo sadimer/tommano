@@ -1,8 +1,5 @@
 tosca_definitions_version: tosca_simple_yaml_1_0
 
-imports:
- - /home/sadimer/Desktop/ISPRAS/nfv_tosca_translator/definitions/nfv_definintion_1_0.yaml
- 
 topology_template:
   node_templates:
     my_vdu:

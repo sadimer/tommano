@@ -1,0 +1,17 @@
+- name: Firewall VNFD
+  shell: |
+    iptables -A {{ item.routingPath }} -p {{ item.protocol }} -j {{ item.action }} -s {{ item.sourceAddr }} -d {{ item.destAddr }} --sport {{ item.sourcePort }} --dport {{ item.destPort }}
+  with_items: "{{ standart_rules }}"
+  when: standart_rules is defined and (item.protocol == "udp" or item.protocol == "tcp")
+
+- name: Firewall VNFD
+  shell: |
+    iptables -A {{ item.routingPath }} -p {{ item.protocol }} -j {{ item.action }} -s {{ item.sourceAddr }} -d {{ item.destAddr }}
+  with_items: "{{ standart_rules }}"
+  when: standart_rules is defined and (item.protocol != "udp" and item.protocol != "tcp")
+
+- name: DPI VNFD
+  shell: |
+    iptables -A {{ item.routingPath }} -m ndpi --{{ item.deepProtocol }} -j {{ item.action }} -s {{ item.sourceAddr }} -d {{ item.destAddr }}
+  with_items: "{{ dpi_rules }}"
+  when: dpi_rules is defined

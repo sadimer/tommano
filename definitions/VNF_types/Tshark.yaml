@@ -1,0 +1,12 @@
+- name: Tshark VNFD
+  shell: |
+    cat > /usr/bin/myshark << EOF
+    #!/bin/bash
+    tshark -b duration:{{ duration }} -b files:{{ files }} -f "{{ captureFilter }}" -w {{ pathToPcap }} -i {{ interfaceName }}
+    EOF
+    
+- name: Restart service tshark
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: tshark

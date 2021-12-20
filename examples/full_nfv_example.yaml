@@ -1,8 +1,5 @@
 tosca_definitions_version: tosca_simple_yaml_1_0
 
-imports:
- - /home/sadimer/Desktop/ISPRAS/nfv_tosca_translator/definitions/nfv_definintion_1_0.yaml
- 
 topology_template:
   node_templates:
     my_vdu:
@@ -13,10 +10,10 @@ topology_template:
         description: simple vdu
         virtualComputeDesc:
           virtualComputeDescId: vc_0
-          virtualCpu: 
+          virtualCpu:
             numVirtualCpu: 1
             cpuArchitecture: x86
-          virtualMemory: 
+          virtualMemory:
             virtualMemSize: 1024 MiB
         virtualStorageDesc:
           id: sd_0
@@ -24,7 +21,7 @@ topology_template:
           sizeOfStorage: 50 GiB
           swImageDesc:
             id: sw_0
-            version: v4.1 
+            version: v4.1
             checksum: some checksum
             minDisk: 20 GiB
             size: 2.55 GiB
@@ -34,7 +31,7 @@ topology_template:
             containerFormat: BARE
         swImageDesc:
           id: sw_0
-          version: v4.1 
+          version: v4.1
           checksum: some checksum
           minDisk: 20 GiB
           size: 2.55 GiB
@@ -56,9 +53,9 @@ topology_template:
           startIp: 192.168.2.10
           endIp: 192.168.2.100
           gatewayIp: 192.168.2.1
-          networkType: geneve 
+          networkType: geneve
         description: simple vl description
-      
+
     my_int_cpd:
       type: nfv.nodes.VDUCpd
       properties:
@@ -83,13 +80,13 @@ topology_template:
       requirements:
         - intCpd: my_vdu
         - intVirtualLinkDesc: my_vl
-        
+
     my_ext_cpd:
       type: nfv.nodes.VnfExtCpd
       requirements:
         - VDUCpd: my_int_cpd
         - intVirtualLinkDesc: my_vl
-        
+
     my_firewall:
       type: nfv.nodes.VNFD.Firewall
       properties:
@@ -121,7 +118,7 @@ topology_template:
               minGracefulStopTimeout: 50
               maxRecommendedGracefulStopTimeout: 100
         modifiableAttributes:
-          extension: 
+          extension:
             standart_rules:
               - action: ACCEPT
                 protocol: tcp
@@ -137,7 +134,7 @@ topology_template:
                 sourceAddr: 10.10.10.10
                 destAddr: 8.8.8.8
           metadata: some_script.yaml
-          
+
     my_nat:
       type: nfv.nodes.VNFD.Nat
       properties:
@@ -177,7 +174,7 @@ topology_template:
                 destAddr: 8.8.8.8
                 protocol: tcp
           metadata: some_script.yaml
-          
+
     my_dhcp:
       type: nfv.nodes.VNFD.DHCP
       properties:
@@ -215,11 +212,11 @@ topology_template:
             internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
             rangeStart: { get_property: [ my_vl, cidrData, startIp ] }
             rangeEnd: { get_property: [ my_vl, cidrData, endIp ] }
-            staticHosts: 
+            staticHosts:
               host1: 192.168.2.50
               host2: 192.168.2.51
           metadata: some_script.yaml
-          
+
     my_dns:
       type: nfv.nodes.VNFD.DNS
       properties:
@@ -253,15 +250,15 @@ topology_template:
         modifiableAttributes:
           extension:
             internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
-            staticHosts:  
+            staticHosts:
               host1: 192.168.2.50
               host2: 192.168.2.51
             domainName: example.com
             forwarders:
               google1: 8.8.8.8
-            iPAddressType: IPV4   
+            iPAddressType: IPV4
           metadata: some_script.yaml
-        
+
     my_tshark:
       type: nfv.nodes.VNFD.Tshark_analize
       properties:
@@ -299,8 +296,8 @@ topology_template:
             pathToPcap: /tmp/dump.pcap
             interfaceName: swp1
             captureFilter: dst port 135 and tcp port 135 and ip[2:2]==48
-          metadata: some_script.yaml  
-          
+          metadata: some_script.yaml
+
     my_ntop:
       type: nfv.nodes.VNFD.Ntop_analize
       properties:
@@ -334,11 +331,12 @@ topology_template:
         modifiableAttributes:
           extension:
             endpointPort: 3000
-            internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
+            internalNetCidr:
+              - { get_property: [ my_vl, cidrData, cidr ] }
             interfacesNames:
               - eth0
-          metadata: some_script.yaml  
-          
+          metadata: some_script.yaml
+
     my_routing:
       type: nfv.nodes.VNFD.Routing
       properties:
@@ -377,6 +375,6 @@ topology_template:
             routes:
               - destCidr: { get_property: [ my_vl, cidrData, cidr ] }
                 gateway: { get_property: [ my_vl, cidrData, gatewayIp ] }
-                cidr: 0.0.0.0/0
+                src: 0.0.0.0/0
                 dev: eth0
-          metadata: some_script.yaml  
+          metadata: some_script.yaml

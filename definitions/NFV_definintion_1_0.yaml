@@ -420,8 +420,10 @@ data_types:
         type: integer
         default: 3000
       internalNetCidr:
-        type: string
+        type: list
         required: false # можно и по имени? Как лучше?
+        entry_schema:
+          type: string
       interfacesNames:
         type: list
         required: false
@@ -442,7 +444,7 @@ data_types:
         default: /tmp/dump.pcap
       interfaceName:
         type: string
-        required: false
+        required: true
       captureFilter:
         type: string
         required: true
@@ -482,16 +484,16 @@ data_types:
     properties:
       destCidr:
         type: string
-        required: false
+        required: true
       gateway:
         type: string
-        required: false
-      cidr:
+        required: true
+      src:
         type: string
         required: false
       dev:
         type: string
-        required: false
+        required: true
       
   nfv.datatypes.VnfInfoModifiableAttributes.extension.Nat:
     derived_from: nfv.datatypes.VnfInfoModifiableAttributes.extension
@@ -551,7 +553,7 @@ data_types:
           - valid_values: [ ACCEPT, DROP ]
       protocol:
         type: string
-        required: false
+        required: true
         constraints:
           - valid_values: [ tcp, udp, icmp ]
       routingPath:
@@ -569,12 +571,12 @@ data_types:
         type: integer
         required: false
         constraints:
-          - in_range: [ 1, 65535 ]
+          - in_range: [ 0, 65535 ]
       destPort:
         type: integer
         required: false
         constraints:
-          - in_range: [ 1, 65535 ]
+          - in_range: [ 0, 65535 ]
     
   nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall.DpiRule:
     derived_from: tosca.datatypes.Root

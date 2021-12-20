@@ -1,0 +1,15 @@
+---
+- name: openstack configuration
+  hosts: localhost
+  vars:
+    endpointPort: 3000
+    internalNetCidr:
+      - 192.168.1.0/24
+      - 192.168.12.0/24
+    interfacesNames:
+      - eth0
+      - swp1
+      - swp2
+  tasks:
+     - name: Include a play after another play
+       include: Ntop.yaml

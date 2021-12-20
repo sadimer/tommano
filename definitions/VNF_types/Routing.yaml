@@ -1,0 +1,29 @@
+- name: Routing VNFD
+  shell: |
+    ip rule add from {{ item.sourceAddr }} to {{ item.destAddr }} table 10
+  with_items: "{{ rules }}"
+  when: rules is defined and item.sourceAddr is defined and item.destAddr is defined 
+
+- name: Routing VNFD
+  shell: |
+    ip rule add to {{ item.destAddr }} table 10
+  with_items: "{{ rules }}"
+  when: rules is defined and item.sourceAddr is not defined and item.destAddr is defined 
+  
+- name: Routing VNFD
+  shell: |
+    ip rule add from {{ item.sourceAddr }} table 10
+  with_items: "{{ rules }}"
+  when: rules is defined and item.sourceAddr is defined and item.destAddr is not defined 
+  
+- name: Routing VNFD
+  shell: |
+    ip route add {{ item.destCidr }} via {{ item.gateway }} dev {{ item.dev }} src {{ item.src }} table 10
+  with_items: "{{ routes }}"
+  when: routes is defined and item.src is defined
+  
+- name: Routing VNFD
+  shell: |
+    ip route add {{ item.destCidr }} via {{ item.gateway }} dev {{ item.dev }} table 10
+  with_items: "{{ routes }}"
+  when: routes is defined and item.src is not defined

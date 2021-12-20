@@ -1,0 +1,34 @@
+- name: Ntop VNFD
+  shell: |
+    cat > /run/ntopng.conf << EOF
+    -d=/var/lib/ntopng
+    EOF
+    
+- name: Ntop VNFD
+  shell: |
+    cat >> /run/ntopng.conf << EOF
+    -w={{ endpointPort }}
+    EOF
+  when: endpointPort is defined
+  
+- name: Ntop VNFD
+  shell: |
+    cat >> /run/ntopng.conf << EOF
+    -m={{ item }}
+    EOF
+  with_items: "{{ internalNetCidr }}"
+  when: internalNetCidr is defined
+  
+- name: Ntop VNFD
+  shell: |
+    cat >> /run/ntopng.conf << EOF
+    -i={{ item }}
+    EOF
+  with_items: "{{ interfacesNames }}"
+  when: interfacesNames is defined
+
+- name: Restart service ntopng
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: ntopng

@@ -1,0 +1,23 @@
+- name: Nat VNFD
+  shell: |
+    cat >> /etc/cumulus/switchd.conf << EOF
+    nat.dynamic_enable = TRUE
+    nat.static_enable = TRUE
+    EOF
+
+- name: Restart service switchd
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: switchd
+    
+- name: Nat VNFD
+  shell: |
+    net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddr }} translate {{ item.destAddr }}
+  with_items: "{{ rules }}"
+  when: rules is defined
+  
+- name: Nat VNFD
+  shell: |
+    net commit
+
