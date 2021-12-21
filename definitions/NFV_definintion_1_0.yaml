@@ -373,9 +373,15 @@ data_types:
       maxLeaseTime:
         type: integer
         default: 7200
+      interfaceName:
+        type: string
+        required: true
       internalNetCidr:
         type: string
         required: true # можно и по имени? Как лучше?
+      gateway:
+        type: string
+        required: true
       rangeStart: 
         type: string
         required: true

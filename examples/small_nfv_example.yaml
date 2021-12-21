@@ -40,5 +40,5 @@ topology_template:
             routes:
               - destCidr: 0.0.0.0/0
                 gateway: 1.1.1.1
-                cidr: 0.0.0.0/0
+                src: 0.0.0.0/0
                 dev: eth0

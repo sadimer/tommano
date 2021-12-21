@@ -1,1 +1,42 @@
+- name: DHCP VNFD
+  shell: |
+    cat > /etc/default/isc-dhcp-server << EOF
+    DHCPD_CONF="-cf /etc/dhcp/dhcpd.conf"
+    DHCPD_PID="-pf /etc/dhcp/dhcpd.pid"
+    INTERFACES="{{ interfaceName }}"
+    EOF
+    cat > /etc/dhcp/dhcpd.conf << EOF
+    default-lease-time {{ defaultLeaseTime }};
+    max-lease-time {{ maxLeaseTime }};
+    ddns-update-style none;
+    authoritative;
+    subnet {{ internalNetCidr | ipaddr('network') }} netmask {{ internalNetCidr | ipaddr('netmask') }} {
+        option routers {{ gateway }};
+        option broadcast-address {{ internalNetCidr |  ipaddr('broadcast') }};
+        range {{ rangeStart }} {{ rangeEnd }};
+    }
+    EOF
 
+- os_port_facts:
+    filters:
+      name: "{{ item.key }}"    
+  register: result
+  delegate_to: 127.0.0.1
+  with_dict: "{{ staticHosts }}"
+  when: staticHosts is defined
+  
+- name: DHCP VNFD
+  shell: |
+    cat >> /etc/dhcp/dhcpd.conf << EOF
+    host {{ item.ansible_facts.openstack_ports[0].name }} {
+        hardware ethernet {{ item.ansible_facts.openstack_ports[0].mac_address }};
+        fixed-address {{ item.ansible_facts.openstack_ports[0].fixed_ips[0].ip_address }};
+    }
+    EOF
+  with_items: "{{ result.results }}"
+
+- name: Restart service dhcpd
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: dhcpd

@@ -209,6 +209,8 @@ topology_template:
           extension:
             defaultLeaseTime: 600
             maxLeaseTime: 7200
+            interfaceName: swp1
+            gateway: { get_property: [ my_vl, cidrData, gatewayIp ] }
             internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
             rangeStart: { get_property: [ my_vl, cidrData, startIp ] }
             rangeEnd: { get_property: [ my_vl, cidrData, endIp ] }

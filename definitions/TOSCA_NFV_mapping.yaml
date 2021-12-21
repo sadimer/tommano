@@ -1,0 +1,6 @@
+nfv.nodes.VDU:
+  - properties:
+      name:
+        - parameter: tosca.nodes.Compute.properties.meta
+          value: "{self[name]}"
+          # TODO
