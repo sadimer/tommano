@@ -397,7 +397,7 @@ data_types:
   nfv.datatypes.VnfInfoModifiableAttributes.extension.DNS:
     derived_from: nfv.datatypes.VnfInfoModifiableAttributes.extension
     properties:
-      internalNetCidr:
+      internalNetAddr:
         type: string
         required: true # можно и по имени? Как лучше?
       staticHosts:

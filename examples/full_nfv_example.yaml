@@ -251,7 +251,7 @@ topology_template:
               maxRecommendedGracefulStopTimeout: 100
         modifiableAttributes:
           extension:
-            internalNetCidr: { get_property: [ my_vl, cidrData, cidr ] }
+            internalNetAddr: { get_property: [ my_vl, cidrData, gatewayIp ] }
             staticHosts:
               host1: 192.168.2.50
               host2: 192.168.2.51
