@@ -2,5 +2,111 @@ nfv.nodes.VDU:
   - properties:
       name:
         - parameter: tosca.nodes.Compute.properties.meta
-          value: "{self[name]}"
-          # TODO
+          value: "name: {self[name]}"
+      vduId:
+        - parameter: tosca.nodes.Compute.properties.meta
+          value: "id: {self[name]}"
+      description:
+        - parameter: tosca.nodes.Compute.properties.meta
+          value: "description: {self[name]}"
+      virtualComputeDesc.virtualComputeDescId:
+      virtualComputeDesc.virtualCpu.numVirtualCpu:
+      virtualComputeDesc.virtualCpu.cpuArchitecture:
+      virtualComputeDesc.virtualMemory.virtualMemSize:
+      virtualStorageDesc.id:
+      virtualStorageDesc.typeOfStorage:
+      virtualStorageDesc.sizeOfStorage:
+      virtualStorageDesc.swImageDesc.id:
+      virtualStorageDesc.swImageDesc.version:
+      virtualStorageDesc.swImageDesc.checksum:
+      virtualStorageDesc.swImageDesc.minDisk:
+      virtualStorageDesc.swImageDesc.size:
+      virtualStorageDesc.swImageDesc.operatingSystem:
+      virtualStorageDesc.swImageDesc.swImage:
+      virtualStorageDesc.swImageDesc.diskFormat:
+      virtualStorageDesc.swImageDesc.containerFormat:
+      swImageDesc.id:
+      swImageDesc.version:
+      swImageDesc.checksum:
+      swImageDesc.minDisk:
+      swImageDesc.size:
+      swImageDesc.operatingSystem:
+      swImageDesc.swImage:
+      swImageDesc.diskFormat:
+      swImageDesc.containerFormat:
+
+nfv.nodes.VL:
+  - properties:
+      virtualLinkDescId: vl_0
+      connectivityType.layerProtocol:
+      virtualLinkDescFlavour.flavourId:
+      cidrData.networkName:
+      cidrData.cidr:
+      cidrData.startIp:
+      cidrData.endIp:
+      cidrData.gatewayIp:
+      cidrData.networkType:
+      description:
+
+nfv.nodes.VDUCpd:
+  - properties:
+      cpdId:
+      layerProtocol:
+      description:
+      addressData.addressType:
+      addressData.l2AddressData.macAddressAssignment:
+      addressData.l2AddressData.macAddress:
+      addressData.l3AddressData.iPAddressAssignment:
+      addressData.l3AddressData.iPAddress:
+      addressData.l3AddressData.floatingIpActivated:
+      addressData.l3AddressData.iPAddressType:
+      addressData.l3AddressData.numberOfIpAddress:
+      virtualNetworkInterfaceRequirements.name:
+      virtualNetworkInterfaceRequirements.supportMandatory:
+      virtualNetworkInterfaceRequirements.requirement:
+
+nfv.nodes.VNFD:
+  - properties:
+      vnfdId:
+      vnfProvider:
+      vnfProductName:
+      vnfSoftwareVersion:
+      vnfmInfo:
+      deploymentFlavour.flavourId:
+      deploymentFlavour.description:
+      deploymentFlavour.vduProfile.vduId:
+      deploymentFlavour.vduProfile.minNumberOfInstances:
+      deploymentFlavour.vduProfile.maxNumberOfInstances:
+      deploymentFlavour.instantiationLevel.levelId:
+      deploymentFlavour.instantiationLevel.description:
+      deploymentFlavour.instantiationLevel.numberOfInstances:
+      deploymentFlavour.vnfLcmOperationsConfiguration.instantiateVnfOpConfig.parameter:
+      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.parameter:
+      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.minGracefulTerminationTimeout:
+      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.maxRecommendedGracefulTerminationTimeout:
+      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.parameter:
+      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.minGracefulStopTimeout:
+      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.maxRecommendedGracefulStopTimeout:
+      modifiableAttributes.metadata:
+
+nfv.nodes.VNFD.DHCP:
+  - properties:
+      modifiableAttributes.extension:
+nfv.nodes.VNFD.DNS:
+  - properties:
+      modifiableAttributes.extension:
+nfv.nodes.VNFD.Firewall:
+  - properties:
+      modifiableAttributes.extension:
+nfv.nodes.VNFD.Nat:
+  - properties:
+      modifiableAttributes.extension:
+nfv.nodes.VNFD.Routing:
+  - properties:
+      modifiableAttributes.extension:
+nfv.nodes.VNFD.Ntop_analyze:
+  - properties:
+      modifiableAttributes.extension:
+nfv.nodes.VNFD.Tshark_analyze:
+  - properties:
+      modifiableAttributes.extension:

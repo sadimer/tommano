@@ -523,10 +523,10 @@ data_types:
         required: true
         constraints:
           - valid_values: [ snat, dnat ]
-      sourceAddr:
+      sourceAddrPr:
         type: string
         required: true
-      destAddr:
+      destAddrPr:
         type: string
         required: true
       protocol:

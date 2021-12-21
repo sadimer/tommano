@@ -13,11 +13,20 @@
     
 - name: Nat VNFD
   shell: |
-    net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddr }} translate {{ item.destAddr }}
+    net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}
+    ifconfig eth0:{{ item.sourceAddrPr.split('.')[3] }} {{ item.sourceAddrPr }} netmask {{ item.sourceAddrPr | ipaddr('netmask') }}
   with_items: "{{ rules }}"
-  when: rules is defined
+  when: rules is defined  and item.typeNat == "dnat"
+  
+- name: Nat VNFD
+  shell: |
+    net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}
+    ifconfig eth0:{{ item.destAddrPr.split('.')[3] }} {{ item.destAddrPr }} netmask {{ item.destAddrPr | ipaddr('netmask') }}
+  with_items: "{{ rules }}"
+  when: rules is defined  and item.typeNat == "snat"
   
 - name: Nat VNFD
   shell: |
     net commit
+    
 

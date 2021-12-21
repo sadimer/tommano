@@ -170,8 +170,8 @@ topology_template:
             rules:
               - typeNat: static
                 routingType: snat
-                sourceAddr: 10.10.10.10
-                destAddr: 8.8.8.8
+                sourceAddrPr: 10.10.10.10/24
+                destAddrPr: 8.8.8.8/24
                 protocol: tcp
           metadata: some_script.yaml
 
