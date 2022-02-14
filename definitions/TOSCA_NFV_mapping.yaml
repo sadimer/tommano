@@ -1,112 +1,193 @@
 nfv.nodes.VDU:
-  - properties:
+  properties:
       name:
-        - parameter: tosca.nodes.Compute.properties.meta
-          value: "name: {self[name]}"
+        - type: tosca.nodes.Compute
+          parameter: properties.meta
       vduId:
-        - parameter: tosca.nodes.Compute.properties.meta
-          value: "id: {self[name]}"
+        - type: tosca.nodes.Compute
       description:
-        - parameter: tosca.nodes.Compute.properties.meta
-          value: "description: {self[name]}"
+        - type: tosca.nodes.Compute
       virtualComputeDesc.virtualComputeDescId:
+        - type: tosca.nodes.Compute
       virtualComputeDesc.virtualCpu.numVirtualCpu:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.host.properties.num_cpus
       virtualComputeDesc.virtualCpu.cpuArchitecture:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.os.properties.architecture
       virtualComputeDesc.virtualMemory.virtualMemSize:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.host.properties.mem_size
       virtualStorageDesc.id:
+        - type: tosca.nodes.Compute
       virtualStorageDesc.typeOfStorage:
+        - type: tosca.nodes.Compute # временно!!
       virtualStorageDesc.sizeOfStorage:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.host.properties.disk_size
       virtualStorageDesc.swImageDesc.id:
+        - type: tosca.nodes.Compute
       virtualStorageDesc.swImageDesc.version:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.os.properties.version
       virtualStorageDesc.swImageDesc.checksum:
+        - type: tosca.nodes.Compute # вряд ли будет возможность реализовать
       virtualStorageDesc.swImageDesc.minDisk:
+        - type: tosca.nodes.Compute # вряд ли будет возможность реализовать
       virtualStorageDesc.swImageDesc.size:
+        - type: tosca.nodes.Compute # вряд ли будет возможность реализовать
       virtualStorageDesc.swImageDesc.operatingSystem:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.os.properties.type
       virtualStorageDesc.swImageDesc.swImage:
+        - type: tosca.nodes.Compute
       virtualStorageDesc.swImageDesc.diskFormat:
+        - type: tosca.nodes.Compute
       virtualStorageDesc.swImageDesc.containerFormat:
+        - type: tosca.nodes.Compute
       swImageDesc.id:
+        - type: tosca.nodes.Compute
       swImageDesc.version:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.os.properties.version
       swImageDesc.checksum:
+        - type: tosca.nodes.Compute
       swImageDesc.minDisk:
+        - type: tosca.nodes.Compute
       swImageDesc.size:
+        - type: tosca.nodes.Compute
       swImageDesc.operatingSystem:
+        - type: tosca.nodes.Compute
+          parameter: capabilities.os.properties.type
       swImageDesc.swImage:
+        - type: tosca.nodes.Compute
       swImageDesc.diskFormat:
+        - type: tosca.nodes.Compute
       swImageDesc.containerFormat:
+        - type: tosca.nodes.Compute
 
-nfv.nodes.VL:
-  - properties:
-      virtualLinkDescId: vl_0
+nfv.nodes.VnfVirtualLinkDesc:
+  properties:
+      virtualLinkDescId:
+        - type: tosca.nodes.network.Network
       connectivityType.layerProtocol:
+        - parameter: properties.ip_version
+          type: tosca.nodes.network.Network
+          format: "{[3]!s}"
       virtualLinkDescFlavour.flavourId:
+        - type: tosca.nodes.network.Network
       cidrData.networkName:
+        - parameter: properties.network_name
+          type: tosca.nodes.network.Network
       cidrData.cidr:
+        - parameter: properties.cidr
+          type: tosca.nodes.network.Network
       cidrData.startIp:
+        - parameter: properties.start_ip
+          type: tosca.nodes.network.Network
       cidrData.endIp:
+        - parameter: properties.end_ip
+          type: tosca.nodes.network.Network
       cidrData.gatewayIp:
+        - parameter: properties.gateway_ip
+          type: tosca.nodes.network.Network
       cidrData.networkType:
+        - parameter: properties.network_type
+          type: tosca.nodes.network.Network
       description:
+        - type: tosca.nodes.network.Network
+
+nfv.nodes.VnfExtCpd:
+  properties:
+      addressData.l3AddressData.floatingIpActivated:
+        - type: tosca.nodes.network.Port
+  requirements:
+     VDUCpd:
+        - type: tosca.nodes.network.Port
+          change_name: yes
+     intVirtualLinkDesc:
+        - type: tosca.nodes.network.Network
+          change_name: no
 
 nfv.nodes.VDUCpd:
-  - properties:
+  properties:
       cpdId:
+        - type: tosca.nodes.network.Port
       layerProtocol:
+        - type: tosca.nodes.network.Port
       description:
+        - type: tosca.nodes.network.Port
       addressData.addressType:
+        - type: tosca.nodes.network.Port
       addressData.l2AddressData.macAddressAssignment:
+        - type: tosca.nodes.network.Port
       addressData.l2AddressData.macAddress:
+        - type: tosca.nodes.network.Port
       addressData.l3AddressData.iPAddressAssignment:
+        - type: tosca.nodes.network.Port
       addressData.l3AddressData.iPAddress:
-      addressData.l3AddressData.floatingIpActivated:
+        - type: tosca.nodes.network.Port
+          parameter: properties.ip_address
       addressData.l3AddressData.iPAddressType:
+        - type: tosca.nodes.network.Port
       addressData.l3AddressData.numberOfIpAddress:
-      virtualNetworkInterfaceRequirements.name:
+        - type: tosca.nodes.network.Port
+      virtualNetworkInterfaceRequirements.name: # сюда можно запихать например отключение безопасности порта?
+        - type: tosca.nodes.network.Port
       virtualNetworkInterfaceRequirements.supportMandatory:
+        - type: tosca.nodes.network.Port
       virtualNetworkInterfaceRequirements.requirement:
+        - type: tosca.nodes.network.Port
+  requirements:
+     intCpd:
+        - type: tosca.nodes.Compute
+          change_name: no
+     intVirtualLinkDesc:
+        - type: tosca.nodes.network.Network
+          change_name: no
 
-nfv.nodes.VNFD:
-  - properties:
-      vnfdId:
-      vnfProvider:
-      vnfProductName:
-      vnfSoftwareVersion:
-      vnfmInfo:
-      deploymentFlavour.flavourId:
-      deploymentFlavour.description:
-      deploymentFlavour.vduProfile.vduId:
-      deploymentFlavour.vduProfile.minNumberOfInstances:
-      deploymentFlavour.vduProfile.maxNumberOfInstances:
-      deploymentFlavour.instantiationLevel.levelId:
-      deploymentFlavour.instantiationLevel.description:
-      deploymentFlavour.instantiationLevel.numberOfInstances:
-      deploymentFlavour.vnfLcmOperationsConfiguration.instantiateVnfOpConfig.parameter:
-      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.parameter:
-      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.minGracefulTerminationTimeout:
-      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.maxRecommendedGracefulTerminationTimeout:
-      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.parameter:
-      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.minGracefulStopTimeout:
-      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.maxRecommendedGracefulStopTimeout:
-      modifiableAttributes.metadata:
+#nfv.nodes.VNFD:
+#  - properties:
+#      vnfdId:
+#      vnfProvider:
+#      vnfProductName:
+#      vnfSoftwareVersion:
+#      vnfmInfo:
+#      deploymentFlavour.flavourId:
+#      deploymentFlavour.description:
+#      deploymentFlavour.vduProfile.vduId:
+#      deploymentFlavour.vduProfile.minNumberOfInstances:
+#      deploymentFlavour.vduProfile.maxNumberOfInstances:
+#      deploymentFlavour.instantiationLevel.levelId:
+#      deploymentFlavour.instantiationLevel.description:
+#      deploymentFlavour.instantiationLevel.numberOfInstances:
+#      deploymentFlavour.vnfLcmOperationsConfiguration.instantiateVnfOpConfig.parameter:
+#      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.parameter:
+#      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.minGracefulTerminationTimeout:
+#      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.maxRecommendedGracefulTerminationTimeout:
+#      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.parameter:
+#      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.minGracefulStopTimeout:
+#      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.maxRecommendedGracefulStopTimeout:
+#      modifiableAttributes.metadata:
 
-nfv.nodes.VNFD.DHCP:
-  - properties:
-      modifiableAttributes.extension:
-nfv.nodes.VNFD.DNS:
-  - properties:
-      modifiableAttributes.extension:
-nfv.nodes.VNFD.Firewall:
-  - properties:
-      modifiableAttributes.extension:
-nfv.nodes.VNFD.Nat:
-  - properties:
-      modifiableAttributes.extension:
-nfv.nodes.VNFD.Routing:
-  - properties:
-      modifiableAttributes.extension:
-nfv.nodes.VNFD.Ntop_analyze:
-  - properties:
-      modifiableAttributes.extension:
-nfv.nodes.VNFD.Tshark_analyze:
-  - properties:
-      modifiableAttributes.extension:
+#nfv.nodes.VNFD.DHCP:
+#  - properties:
+#      modifiableAttributes.extension:
+#fv.nodes.VNFD.DNS:
+#  - properties:
+#      modifiableAttributes.extension:
+#nfv.nodes.VNFD.Firewall:
+#  - properties:
+#      modifiableAttributes.extension:
+#nfv.nodes.VNFD.Nat:
+#  - properties:
+#      modifiableAttributes.extension:
+#nfv.nodes.VNFD.Routing:
+#  - properties:
+#      modifiableAttributes.extension:
+#nfv.nodes.VNFD.Ntop_analyze:
+#  - properties:
+#      modifiableAttributes.extension:
+#nfv.nodes.VNFD.Tshark_analyze:
+#  - properties:
+#      modifiableAttributes.extension:

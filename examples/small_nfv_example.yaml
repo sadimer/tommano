@@ -13,18 +13,26 @@ topology_template:
             virtualMemSize: 1024 MiB
         virtualStorageDesc:
           sizeOfStorage: 50 GiB
+        swImageDesc:
+          id: sw_0
           
     my_vl:
       type: nfv.nodes.VnfVirtualLinkDesc
+      properties:
+        virtualLinkDescId: vl_0
       
     my_int_cpd:
       type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
       requirements:
         - intCpd: my_vdu
         - intVirtualLinkDesc: my_vl
         
     my_ext_cpd:
       type: nfv.nodes.VnfExtCpd
+      properties:
+        cpdId: cpd_0
       requirements:
         - VDUCpd: my_int_cpd
         - intVirtualLinkDesc: my_vl

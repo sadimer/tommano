@@ -111,7 +111,7 @@ node_types:
         required: true
       swImageDesc:
         type: nfv.datatypes.VirtualStorageDesc.swImageDesc
-        required: false
+        required: true
     capabilities: 
       intCpd:
         type: nfv.capabilities.intCpd

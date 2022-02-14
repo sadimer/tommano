@@ -83,6 +83,8 @@ topology_template:
 
     my_ext_cpd:
       type: nfv.nodes.VnfExtCpd
+      properties:
+        cpdId: cpd_0
       requirements:
         - VDUCpd: my_int_cpd
         - intVirtualLinkDesc: my_vl
