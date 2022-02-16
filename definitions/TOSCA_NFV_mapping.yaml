@@ -142,12 +142,16 @@ nfv.nodes.VDUCpd:
      intCpd:
         - type: tosca.nodes.Compute
           change_name: no
+        - type: tosca.nodes.network.Port
+          parameter: 'requirements.[0].binding'
      intVirtualLinkDesc:
         - type: tosca.nodes.network.Network
           change_name: no
+        - type: tosca.nodes.network.Port
+          parameter: 'requirements.[0].link'
 
 #nfv.nodes.VNFD:
-#  - properties:
+#  properties:
 #      vnfdId:
 #      vnfProvider:
 #      vnfProductName:
@@ -170,24 +174,130 @@ nfv.nodes.VDUCpd:
 #      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.maxRecommendedGracefulStopTimeout:
 #      modifiableAttributes.metadata:
 
-#nfv.nodes.VNFD.DHCP:
-#  - properties:
-#      modifiableAttributes.extension:
-#fv.nodes.VNFD.DNS:
-#  - properties:
-#      modifiableAttributes.extension:
-#nfv.nodes.VNFD.Firewall:
-#  - properties:
-#      modifiableAttributes.extension:
-#nfv.nodes.VNFD.Nat:
-#  - properties:
-#      modifiableAttributes.extension:
-#nfv.nodes.VNFD.Routing:
-#  - properties:
-#      modifiableAttributes.extension:
-#nfv.nodes.VNFD.Ntop_analyze:
-#  - properties:
-#      modifiableAttributes.extension:
-#nfv.nodes.VNFD.Tshark_analyze:
-#  - properties:
-#      modifiableAttributes.extension:
+nfv.nodes.VNFD.DHCP:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "DHCP.yaml"
+      modifiableAttributes.extension.defaultLeaseTime:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.defaultLeaseTime
+      modifiableAttributes.extension.maxLeaseTime:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.maxLeaseTime
+      modifiableAttributes.extension.interfaceName:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.interfaceName
+      modifiableAttributes.extension.internalNetCidr:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.internalNetCidr
+      modifiableAttributes.extension.gateway:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.gateway
+      modifiableAttributes.extension.rangeStart:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.rangeStart
+      modifiableAttributes.extension.rangeEnd:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.rangeEnd
+      modifiableAttributes.extension.staticHosts:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.staticHosts
+
+
+nfv.nodes.VNFD.DNS:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "DNS.yaml"
+      modifiableAttributes.extension.internalNetAddr:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.internalNetAddr
+      modifiableAttributes.extension.staticHosts:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.staticHosts
+      modifiableAttributes.extension.domainName:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.domainName
+      modifiableAttributes.extension.forwarders:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.forwarders
+      modifiableAttributes.extension.iPAddressType:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.iPAddressType
+
+nfv.nodes.VNFD.Firewall:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "Firewall.yaml"
+      modifiableAttributes.extension.standart_rules:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.standart_rules
+      modifiableAttributes.extension.dpi_rules:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.dpi_rules
+
+nfv.nodes.VNFD.Nat:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "Nat.yaml"
+      modifiableAttributes.extension.rules:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.rules
+
+nfv.nodes.VNFD.Ntop_analyze:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "Ntop.yaml"
+      modifiableAttributes.extension.endpointPort:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.endpointPort
+      modifiableAttributes.extension.internalNetCidr:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.internalNetCidr
+      modifiableAttributes.extension.interfacesNames:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.interfacesNames
+
+nfv.nodes.VNFD.Tshark_analyze:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "Tshark.yaml"
+      modifiableAttributes.extension.duration:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.duration
+      modifiableAttributes.extension.files:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.files
+      modifiableAttributes.extension.pathToPcap:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.pathToPcap
+      modifiableAttributes.extension.interfaceName:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.interfaceName
+      modifiableAttributes.extension.captureFilter:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.captureFilter
+
+nfv.nodes.VNFD.Routing:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "Routing.yaml"
+      modifiableAttributes.extension.rules:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.rules
+      modifiableAttributes.extension.routes:
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.inputs.routes

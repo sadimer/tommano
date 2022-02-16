@@ -25,7 +25,18 @@ class ToscaNormativeTemplate(object):
     # типы которых нет в nfv, но они нужны для развертывания
     def translate_specific_types(self, tmp_template, tmpl_name):
         if tmp_template != {}:
-            if tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Network':
+            if tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Port':
+                if 'properties' not in tmp_template[tmpl_name] or 'ip_address' not in tmp_template[tmpl_name]['properties']:
+                    # проверь всегда ли VL к этому моменту будет сощдана (если нет будет ошибка по requirements)
+                    if 'properties' not in tmp_template[tmpl_name]:
+                        tmp_template[tmpl_name]['properties'] = {}
+                    for elem in tmp_template[tmpl_name]['requirements']:
+                        if 'link' in elem:
+                            start = int(ipaddress.IPv4Address(self.new_element_templates[elem['link']]['properties']['start_ip']))
+                            end = int(ipaddress.IPv4Address(self.new_element_templates[elem['link']]['properties']['end_ip']))
+                            address = str(ipaddress.IPv4Address(utils.get_random_int(start, end)))
+                            tmp_template[tmpl_name]['properties']['ip_address'] = address
+            elif tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Network':
                 net_name = 'net' + str(utils.get_random_int(0, 1024))
                 if 'properties' not in tmp_template[tmpl_name]:
                     cidr = utils.generate_random_subnet()
@@ -58,7 +69,7 @@ class ToscaNormativeTemplate(object):
 
     def translate_to_tosca(self):
         self.result_template = {}
-        new_element_templates = {}
+        self.new_element_templates = {}
         additional_keys = []
         element_templates = copy.copy(self.node_templates)
         # тут пока хз че делать
@@ -121,26 +132,26 @@ class ToscaNormativeTemplate(object):
 
                                             if 'change_name' in elem:
                                                 if elem['change_name'] == False:
-                                                    if iter not in new_element_templates or elem['type'] != new_element_templates[iter]['type']:
+                                                    if iter not in self.new_element_templates or elem['type'] != self.new_element_templates[iter]['type']:
                                                         logging.error("Error! The requirement is not defined")
                                                         sys.exit(1)
                                                 elif elem['change_name'] == True:
-                                                    if iter in new_element_templates and elem['type'] == new_element_templates[iter]['type']:
-                                                        tmp_template[tmpl_name] = new_element_templates.pop(iter)
+                                                    if iter in self.new_element_templates and elem['type'] == self.new_element_templates[iter]['type']:
+                                                        tmp_template[tmpl_name] = self.new_element_templates.pop(iter)
                                                         additional_keys += [iter]
                                                     else:
                                                         logging.error("Error! The requirement is not defined")
                                                         sys.exit(1)
 
 
-                        new_element_templates = utils.deep_update_dict(new_element_templates, self.translate_specific_types(tmp_template, tmpl_name))
-        for key in new_element_templates:
+                        self.new_element_templates = utils.deep_update_dict(self.new_element_templates, self.translate_specific_types(tmp_template, tmpl_name))
+        for key in self.new_element_templates:
             if key in element_templates:
                 element_templates.pop(key)
         for key in additional_keys:
             if key in element_templates:
                 element_templates.pop(key)
-        element_templates = utils.deep_update_dict(element_templates, new_element_templates)
+        element_templates = utils.deep_update_dict(element_templates, self.new_element_templates)
         self.result_template['tosca_definitions_version'] = self.version
         self.result_template['topology_template'] = {}
         self.result_template['topology_template']['node_templates'] = element_templates

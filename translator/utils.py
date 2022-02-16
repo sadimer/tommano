@@ -28,7 +28,10 @@ def str_dots_to_dict(str, param):
     new_res = {}
     res[arr[0]] = param
     for i in range(1, len(arr)):
-        new_res[arr[i]] = res
+        if arr[i] != '[0]' and arr[i] != '0' and arr[i] != '[]':
+            new_res[arr[i]] = res
+        else:
+            new_res = [res]
         res = new_res
         new_res = {}
     return res

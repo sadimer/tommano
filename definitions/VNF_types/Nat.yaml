@@ -23,7 +23,7 @@
     net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}
     ifconfig eth0:{{ item.destAddrPr.split('.')[3] }} {{ item.destAddrPr }} netmask {{ item.destAddrPr | ipaddr('netmask') }}
   with_items: "{{ rules }}"
-  when: rules is defined  and item.typeNat == "snat"
+  when: rules is defined and item.typeNat == "snat"
   
 - name: Nat VNFD
   shell: |

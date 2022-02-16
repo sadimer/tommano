@@ -37,11 +37,11 @@ node_types:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.DNS
   
-  nfv.nodes.VNFD.Tshark_analize: 
+  nfv.nodes.VNFD.Tshark_analyze:
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
-        type: nfv.datatypes.VnfInfoModifiableAttributes.Tshark_analize
+        type: nfv.datatypes.VnfInfoModifiableAttributes.Tshark_analyze
   
   nfv.nodes.VNFD.Routing: 
     derived_from: nfv.nodes.VNFD
@@ -49,11 +49,11 @@ node_types:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Routing
     
-  nfv.nodes.VNFD.Ntop_analize:  
+  nfv.nodes.VNFD.Ntop_analyze:
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
-        type: nfv.datatypes.VnfInfoModifiableAttributes.Ntop_analize
+        type: nfv.datatypes.VnfInfoModifiableAttributes.Ntop_analyze
     
   nfv.nodes.VNFD:
     derived_from: tosca.nodes.Root
@@ -419,7 +419,7 @@ data_types:
         constraints:
           - valid_values: [ IPV4, IPV6 ]
           
-  nfv.datatypes.VnfInfoModifiableAttributes.extension.Ntop_analize:
+  nfv.datatypes.VnfInfoModifiableAttributes.extension.Ntop_analyze:
     derived_from: nfv.datatypes.VnfInfoModifiableAttributes.extension
     properties:
       endpointPort:
@@ -436,7 +436,7 @@ data_types:
         entry_schema: # список названий интерфейсов
           type: string
           
-  nfv.datatypes.VnfInfoModifiableAttributes.extension.Tshark_analize:
+  nfv.datatypes.VnfInfoModifiableAttributes.extension.Tshark_analyze:
     derived_from: nfv.datatypes.VnfInfoModifiableAttributes.extension
     properties:
       duration:
@@ -656,19 +656,19 @@ data_types:
           required: true
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Routing
           
-  nfv.datatypes.VnfInfoModifiableAttributes.Tshark_analize:
+  nfv.datatypes.VnfInfoModifiableAttributes.Tshark_analyze:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
           required: true
-          type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Tshark_analize
+          type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Tshark_analyze
           
-  nfv.datatypes.VnfInfoModifiableAttributes.Ntop_analize:
+  nfv.datatypes.VnfInfoModifiableAttributes.Ntop_analyze:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes
       properties:
         extension: 
           required: true
-          type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Ntop_analize
+          type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Ntop_analyze
         
   nfv.datatypes.VnfInfoModifiableAttributes.SpamVirus:
       derived_from: nfv.datatypes.VnfInfoModifiableAttributes

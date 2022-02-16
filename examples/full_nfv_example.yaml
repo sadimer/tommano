@@ -264,11 +264,11 @@ topology_template:
           metadata: some_script.yaml
 
     my_tshark:
-      type: nfv.nodes.VNFD.Tshark_analize
+      type: nfv.nodes.VNFD.Tshark_analyze
       properties:
         vnfdId: vnfd_0
         vnfProvider: clouni
-        vnfProductName: Tshark_analize
+        vnfProductName: Tshark_analyze
         vnfSoftwareVersion: v1.0
         vnfmInfo: some info
         deploymentFlavour:
@@ -303,11 +303,11 @@ topology_template:
           metadata: some_script.yaml
 
     my_ntop:
-      type: nfv.nodes.VNFD.Ntop_analize
+      type: nfv.nodes.VNFD.Ntop_analyze
       properties:
         vnfdId: vnfd_0
         vnfProvider: clouni
-        vnfProductName: Ntop_analize
+        vnfProductName: Ntop_analyze
         vnfSoftwareVersion: v1.0
         vnfmInfo: some info
         deploymentFlavour:
