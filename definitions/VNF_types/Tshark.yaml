@@ -2,7 +2,7 @@
   shell: |
     cat > /usr/bin/myshark << EOF
     #!/bin/bash
-    tshark -b duration:{{ duration }} -b files:{{ files }} -f "{{ captureFilter }}" -w {{ pathToPcap }} -i {{ interfaceName }}
+    tshark -b duration:{{ Tshark_analyze_duration }} -b files:{{ Tshark_analyze_files }} -f "{{ Tshark_analyze_captureFilter }}" -w {{ Tshark_analyze_pathToPcap }} -i {{ Tshark_analyze_interfaceName }}
     EOF
     
 - name: Restart service tshark

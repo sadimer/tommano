@@ -3,27 +3,26 @@
     cat > /etc/default/isc-dhcp-server << EOF
     DHCPD_CONF="-cf /etc/dhcp/dhcpd.conf"
     DHCPD_PID="-pf /etc/dhcp/dhcpd.pid"
-    INTERFACES="{{ interfaceName }}"
+    INTERFACES="{{ DHCP_interfaceName }}"
     EOF
     cat > /etc/dhcp/dhcpd.conf << EOF
-    default-lease-time {{ defaultLeaseTime }};
-    max-lease-time {{ maxLeaseTime }};
+    default-lease-time {{ DHCP_defaultLeaseTime }};
+    max-lease-time {{ DHCP_maxLeaseTime }};
     ddns-update-style none;
     authoritative;
-    subnet {{ internalNetCidr | ipaddr('network') }} netmask {{ internalNetCidr | ipaddr('netmask') }} {
-        option routers {{ gateway }};
-        option broadcast-address {{ internalNetCidr |  ipaddr('broadcast') }};
-        range {{ rangeStart }} {{ rangeEnd }};
+    subnet {{ DHCP_internalNetCidr | ipaddr('network') }} netmask {{ DHCP_internalNetCidr | ipaddr('netmask') }} {
+        option routers {{ DHCP_gateway }};
+        option broadcast-address {{ DHCP_internalNetCidr |  ipaddr('broadcast') }};
+        range {{ DHCP_rangeStart }} {{ DHCP_rangeEnd }};
     }
     EOF
-
 - os_port_facts:
     filters:
       name: "{{ item.key }}"    
   register: result
   delegate_to: 127.0.0.1
-  with_dict: "{{ staticHosts }}"
-  when: staticHosts is defined
+  with_dict: "{{ DHCP_staticHosts }}"
+  when: DHCP_staticHosts is defined
   
 - name: DHCP VNFD
   shell: |

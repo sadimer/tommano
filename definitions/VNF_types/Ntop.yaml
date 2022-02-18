@@ -7,25 +7,25 @@
 - name: Ntop VNFD
   shell: |
     cat >> /run/ntopng.conf << EOF
-    -w={{ endpointPort }}
+    -w={{ Ntop_analyze_endpointPort }}
     EOF
-  when: endpointPort is defined
+  when: Ntop_analyze_endpointPort is defined
   
 - name: Ntop VNFD
   shell: |
     cat >> /run/ntopng.conf << EOF
     -m={{ item }}
     EOF
-  with_items: "{{ internalNetCidr }}"
-  when: internalNetCidr is defined
+  with_items: "{{ Ntop_analyze_internalNetCidr }}"
+  when: Ntop_analyze_internalNetCidr is defined
   
 - name: Ntop VNFD
   shell: |
     cat >> /run/ntopng.conf << EOF
     -i={{ item }}
     EOF
-  with_items: "{{ interfacesNames }}"
-  when: interfacesNames is defined
+  with_items: "{{ Ntop_analyze_interfacesNames }}"
+  when: Ntop_analyze_interfacesNames is defined
 
 - name: Restart service ntopng
   systemd:

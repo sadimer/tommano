@@ -39,6 +39,21 @@ topology_template:
           swImage: some url
           diskFormat: qcow2
           containerFormat: BARE
+
+    new_vdu:
+      type: nfv.nodes.VDU
+      properties:
+        virtualComputeDesc:
+          virtualCpu:
+            numVirtualCpu: 1
+            cpuArchitecture: x86
+          virtualMemory:
+            virtualMemSize: 1024 MiB
+        virtualStorageDesc:
+          sizeOfStorage: 100 GiB
+        swImageDesc:
+          id: sw_0
+
     my_vl:
       type: nfv.nodes.VnfVirtualLinkDesc
       properties:
@@ -136,6 +151,9 @@ topology_template:
                 sourceAddr: 10.10.10.10
                 destAddr: 8.8.8.8
           metadata: some_script.yaml
+      requirements:
+       - vnfExtCpd: my_ext_cpd
+       - vdu: my_vdu
 
     my_nat:
       type: nfv.nodes.VNFD.Nat
@@ -176,6 +194,9 @@ topology_template:
                 destAddrPr: 8.8.8.8/24
                 protocol: tcp
           metadata: some_script.yaml
+      requirements:
+       - vnfExtCpd: my_ext_cpd
+       - vdu: my_vdu
 
     my_dhcp:
       type: nfv.nodes.VNFD.DHCP
@@ -220,6 +241,9 @@ topology_template:
               host1: 192.168.2.50
               host2: 192.168.2.51
           metadata: some_script.yaml
+      requirements:
+       - vnfExtCpd: my_ext_cpd
+       - vdu: my_vdu
 
     my_dns:
       type: nfv.nodes.VNFD.DNS
@@ -262,6 +286,9 @@ topology_template:
               google1: 8.8.8.8
             iPAddressType: IPV4
           metadata: some_script.yaml
+      requirements:
+        - vnfExtCpd: my_ext_cpd
+        - vdu: my_vdu
 
     my_tshark:
       type: nfv.nodes.VNFD.Tshark_analyze
@@ -301,6 +328,9 @@ topology_template:
             interfaceName: swp1
             captureFilter: dst port 135 and tcp port 135 and ip[2:2]==48
           metadata: some_script.yaml
+      requirements:
+        - vnfExtCpd: my_ext_cpd
+        - vdu: my_vdu
 
     my_ntop:
       type: nfv.nodes.VNFD.Ntop_analyze
@@ -340,6 +370,9 @@ topology_template:
             interfacesNames:
               - eth0
           metadata: some_script.yaml
+      requirements:
+        - vnfExtCpd: my_ext_cpd
+        - vdu: my_vdu
 
     my_routing:
       type: nfv.nodes.VNFD.Routing
@@ -382,3 +415,23 @@ topology_template:
                 src: 0.0.0.0/0
                 dev: eth0
           metadata: some_script.yaml
+      requirements:
+        - vnfExtCpd: my_ext_cpd
+        - vdu: my_vdu
+
+    new_routing:
+      type: nfv.nodes.VNFD.Routing
+      properties:
+        modifiableAttributes:
+          extension:
+            rules:
+              - sourceAddr: 0.0.0.0
+                destAddr: 0.0.0.0
+            routes:
+              - destCidr: 0.0.0.0/0
+                gateway: 1.1.1.1
+                src: 0.0.0.0/0
+                dev: eth0
+      requirements:
+        - vnfExtCpd: my_ext_cpd
+        - vdu: new_vdu

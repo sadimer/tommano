@@ -6,6 +6,7 @@ import translator.utils as utils
 from toscaparser.tosca_template import ToscaTemplate
 from translator.template import ToscaNormativeTemplate
 
+VNF_DEF_PATH = '/definitions/VNF_types/'
 NFV_DEF_PATH = '/definitions/NFV_definintion_1_0.yaml'
 TOSCA_DEF_PATH = '/definitions/TOSCA_definition_1_0.yaml'
 MAP_PATH = '/definitions/TOSCA_NFV_mapping.yaml'

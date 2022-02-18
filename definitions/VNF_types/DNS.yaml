@@ -2,9 +2,8 @@
   shell: |
     cat > /etc/default/bind9 << EOF
     RESOLVCONF=no
-    OPTIONS="-u bind -{{ iPAddressType[3] }}"
+    OPTIONS="-u bind -{{ DNS_iPAddressType[3] }}"
     EOF
-
 - name: Restart service bind9
   systemd:
     state: restarted
@@ -15,7 +14,7 @@
   shell: |
     cat > /etc/bind/named.conf.options << EOF
     acl "trusted" {
-        {{ internalNetAddr }};
+        {{ DNS_internalNetAddr }};
     EOF
         
 - name: DNS VNFD
@@ -23,8 +22,8 @@
     cat >> /etc/bind/named.conf.options << EOF
         {{ item.value }};
     EOF
-  with_dict: "{{ staticHosts }}"
-  when: staticHosts is defined
+  with_dict: "{{ DNS_staticHosts }}"
+  when: DNS_staticHosts is defined
 
 - name: DNS VNFD
   shell: |
@@ -34,7 +33,7 @@
         directory "/var/cache/bind";
         recursion yes;
         allow-recursion { trusted; };
-        listen-on { {{ internalNetAddr }}; };
+        listen-on { {{ DNS_internalNetAddr }}; };
         allow-transfer { none; };
         forwarders {
     EOF
@@ -44,8 +43,8 @@
     cat >> /etc/bind/named.conf.options << EOF
             {{ item.value }};
     EOF
-  with_dict: "{{ forwarders }}"
-  when: forwarders is defined
+  with_dict: "{{ DNS_forwarders }}"
+  when: DNS_forwarders is defined
   
 - name: DNS VNFD
   shell: |
@@ -54,80 +53,79 @@
         dnssec-validation auto;
     };
     EOF
-
 - name: DNS VNFD
   shell: |    
     cat >> /etc/bind/named.conf.local << EOF
-    zone "{{ domainName }}" {
+    zone "{{ DNS_domainName }}" {
       type master;
-      file "/etc/bind/zones/db.{{ domainName }}";
+      file "/etc/bind/zones/db.{{ DNS_domainName }}";
     };
-    zone "{{ '.'.join(internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa" {
+    zone "{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa" {
       type master;
-      file "/etc/bind/zones/db.{{ '.'.join(internalNetAddr.split('.')[:3][::-1]) }}";
+      file "/etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}";
     };
     EOF
     
 - name: DNS VNFD
   shell: | 
     mkdir /etc/bind/zones
-    cat > /etc/bind/zones/db.{{ domainName }} << EOF
+    cat > /etc/bind/zones/db.{{ DNS_domainName }} << EOF
     ;
     ; BIND data file for local loopback interface
     ;
     \$TTL 604800
-    @ IN SOA cumulus.{{ domainName }}. admin.{{ domainName }}. (
+    @ IN SOA cumulus.{{ DNS_domainName }}. admin.{{ DNS_domainName }}. (
       3 ; Serial
       604800 ; Refresh
       86400 ; Retry
       2419200 ; Expire
       604800 ) ; Negative Cache TTL
     ;
-     IN NS cumulus.{{ domainName }}.
-    cumulus.{{ domainName }}. IN A {{ internalNetAddr }}
+     IN NS cumulus.{{ DNS_domainName }}.
+    cumulus.{{ DNS_domainName }}. IN A {{ DNS_internalNetAddr }}
     EOF
     
 - name: DNS VNFD
   shell: | 
     mkdir /etc/bind/zones
-    cat >> /etc/bind/zones/db.{{ domainName }} << EOF
-    {{ item.key }}.{{ domainName }}. IN A {{ item.value }}
+    cat >> /etc/bind/zones/db.{{ DNS_domainName }} << EOF
+    {{ item.key }}.{{ DNS_domainName }}. IN A {{ item.value }}
     EOF
-  with_dict: "{{ staticHosts }}"
-  when: staticHosts is defined
+  with_dict: "{{ DNS_staticHosts }}"
+  when: DNS_staticHosts is defined
   
 - name: DNS VNFD
   shell: | 
-    cat > /etc/bind/zones/db.{{ '.'.join(internalNetAddr.split('.')[:3][::-1]) }} << EOF
+    cat > /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }} << EOF
     ;
     ; BIND reverse data file for local loopback interface
     ;
     \$TTL 604800
-    @ IN SOA cumulus.{{ domainName }}. admin.{{ domainName }}. (
+    @ IN SOA cumulus.{{ DNS_domainName }}. admin.{{ DNS_domainName }}. (
       3 ; Serial
       604800 ; Refresh
       86400 ; Retry
       2419200 ; Expire
       604800 ) ; Negative
     ; name servers
-     IN NS cumulus.{{ domainName }}.
+     IN NS cumulus.{{ DNS_domainName }}.
     ; PTR Records
-    {{ internalNetAddr.split('.')[3] }} IN PTR cumulus.{{ domainName }}.
+    {{ DNS_internalNetAddr.split('.')[3] }} IN PTR cumulus.{{ DNS_domainName }}.
     EOF
     
 - name: DNS VNFD
   shell: | 
-    cat >> /etc/bind/zones/db.{{ '.'.join(internalNetAddr.split('.')[:3][::-1]) }} << EOF
-    {{ item.value.split('.')[3] }} IN PTR {{ item.key }}.{{ domainName }}.
+    cat >> /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }} << EOF
+    {{ item.value.split('.')[3] }} IN PTR {{ item.key }}.{{ DNS_domainName }}.
     EOF
-  with_dict: "{{ staticHosts }}"
-  when: staticHosts is defined
+  with_dict: "{{ DNS_staticHosts }}"
+  when: DNS_staticHosts is defined
 
 - name: DNS VNFD
   shell: | 
     named-checkconf
-    named-checkzone {{ domainName }} /etc/bind/zones/db.{{ domainName }}
-    named-checkzone {{ '.'.join(internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa /etc/bind/zones/db.{{ '.'.join(internalNetAddr.split('.')[:3][::-1]) }}
+    named-checkzone {{ DNS_domainName }} /etc/bind/zones/db.{{ DNS_domainName }}
+    named-checkzone {{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}
   
 - name: Restart service bind9
   systemd:

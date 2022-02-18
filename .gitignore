@@ -132,3 +132,6 @@ dmypy.json
 /definitions/VNF_types/clouds.yaml
 
 .idea
+
+/examples/configure*
+/examples/result.yaml
