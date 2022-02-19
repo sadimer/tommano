@@ -1,0 +1,2 @@
+recursive-include translator *.cfg *.yaml *.txt
+recursive-include definitions *.cfg *.yaml *.txt
