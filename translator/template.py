@@ -6,7 +6,7 @@ import logging
 import sys
 import os
 
-VNF_DEF_PATH = '/definitions/VNF_types/'
+DEF_PATH = '/definitions/'
 TRANS_PATH = '/translator/'
 
 from toscaparser.functions import GetProperty
@@ -26,16 +26,12 @@ class ToscaNormativeTemplate(object):
         self.relationship_templates = self.resolve_get_property_functions(self.relationship_templates)
         self.mapping = yaml_dict_mapping
         self.expand_mapping()
-        self.generated_scripts = utils.get_project_root_path() + TRANS_PATH + 'scripts.txt'
-        with open(self.generated_scripts, "r+") as f:
-            for line in f:
-                if os.path.isfile(line[:-1]):
-                    os.remove(line[:-1])
-            f.truncate(0)
+        self.generated_scripts = {}
+        self.num_addresses = {}
         self.translate_to_tosca()
 
-    def get_result_template(self):
-        return self.result_template
+    def get_result(self):
+        return self.result_template, self.generated_scripts
 
     def expand_mapping(self):
         for key in self.mapping:
@@ -54,13 +50,13 @@ class ToscaNormativeTemplate(object):
                 if 'interfaces' in tmp_template[tmpl_name] and 'Standard' in tmp_template[tmpl_name]['interfaces'] and \
                         'configure' in tmp_template[tmpl_name]['interfaces']['Standard']:
                     if 'implementation' in tmp_template[tmpl_name]['interfaces']['Standard']['configure']:
-                        vnf_def_file = utils.get_project_root_path() + VNF_DEF_PATH + \
+                        def_file = utils.get_project_root_path() + DEF_PATH + \
                                        tmp_template[tmpl_name]['interfaces']['Standard']['configure']['implementation']
                     elif not isinstance(tmp_template[tmpl_name]['interfaces']['Standard']['configure'], dict):
-                        vnf_def_file = utils.get_project_root_path() + VNF_DEF_PATH + \
+                        def_file = utils.get_project_root_path() + DEF_PATH + \
                                        tmp_template[tmpl_name]['interfaces']['Standard']['configure']
                     try:
-                        with open(vnf_def_file, "r+") as f:
+                        with open(def_file, "r+") as f:
                             vnf_def = f.readlines()
                     except:
                         logging.error("Error! Failed to open VNF template file")
@@ -69,11 +65,10 @@ class ToscaNormativeTemplate(object):
                     if 'properties' in tmp_template[tmpl_name]:
                         if 'meta' in tmp_template[tmpl_name]['properties']:
                             script = "configure_" + tmp_template[tmpl_name]['properties']['meta'] + ".yaml"
-                            with open(script, "a+") as ouf:
-                                for line in vnf_def:
-                                    print(line, file=ouf, end='')
-                            with open(self.generated_scripts, "a+") as ouf:
-                                print(script, file=ouf)
+                            if script not in self.generated_scripts:
+                                self.generated_scripts[script] = vnf_def
+                            else:
+                                self.generated_scripts[script] += vnf_def
                         else:
                             logging.error("Error! VNFD hasnt meta, plase check mapping for VNFD")
                             sys.exit(1)
@@ -85,6 +80,7 @@ class ToscaNormativeTemplate(object):
                         tmp_template[tmpl_name]['properties'] = {}
                     if 'requirements' in tmp_template[tmpl_name]:
                         flag = False
+                        # адрес в vnf вещь необязательная, изголяемся как хотим
                         for elem in tmp_template[tmpl_name]['requirements']:
                             if 'link' in elem:
                                 start = int(ipaddress.IPv4Address(self.new_element_templates[elem['link']]['properties']['start_ip']))
@@ -96,19 +92,24 @@ class ToscaNormativeTemplate(object):
                         if not flag:
                             logging.error("Error! No link requirement")
                             sys.exit(1)
-                        for elem in tmp_template[tmpl_name]['requirements']:
-                            if 'binding' in elem:
-                                self.new_element_templates[elem['binding']].update(
-                                    {'properties': {'ports': {'external': {'addresses': [address]}}}})
-                                break
                 else:
                     # не самое удачное решение, но работает
                     if 'requirements' in tmp_template[tmpl_name]:
                         address = tmp_template[tmpl_name]['properties']['ip_address']
                         for elem in tmp_template[tmpl_name]['requirements']:
                             if 'binding' in elem:
-                                self.new_element_templates[elem['binding']].update(
-                                    {'properties':{'ports':{'external':{'addresses':[address]}}}})
+                                if elem['binding'] not in self.num_addresses:
+                                    self.num_addresses[elem['binding']] = [address]
+                                elif address not in self.num_addresses[elem['binding']]:
+                                    self.num_addresses[elem['binding']] += [address]
+                                else:
+                                    break
+                                # убрать?
+                                self.new_element_templates[elem['binding']] = utils.deep_update_dict(self.new_element_templates[elem['binding']], {'properties': {'ports': {'external': {'addresses': [address]}}}})
+                                self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                    self.new_element_templates[elem['binding']], {'interfaces': {'Standard': {
+                                        'configure': {'inputs': {
+                                            'iPAddressDict': {len(self.num_addresses[elem['binding']]): address}}}}}})
                                 break
             elif tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Network':
                 net_name = 'net' + str(utils.get_random_int(0, 1024))
@@ -237,13 +238,24 @@ class ToscaNormativeTemplate(object):
                                         for elem in atr_k:
                                             if 'parameter' in elem:
                                                 if 'format' in elem:
-                                                    if tmpl_name in tmp_template:
-                                                        tmp_template[tmpl_name] = utils.deep_update_dict(tmp_template[tmpl_name],
-                                                                                                         utils.str_dots_to_dict(elem['parameter'],
-                                                                                                         elem['format'].format(iter)))
+                                                    if elem['format'] == '{node_name}':
+                                                        if tmpl_name in tmp_template:
+                                                            tmp_template[tmpl_name] = utils.deep_update_dict(
+                                                                tmp_template[tmpl_name],
+                                                                utils.str_dots_to_dict(elem['parameter'],
+                                                                                       tmpl_name))
+                                                        else:
+                                                            tmp_template[tmpl_name] = utils.str_dots_to_dict(
+                                                                elem['parameter'],
+                                                                tmpl_name)
                                                     else:
-                                                        tmp_template[tmpl_name] = utils.str_dots_to_dict(elem['parameter'],
-                                                                                                         elem['format'].format(iter))
+                                                        if tmpl_name in tmp_template:
+                                                            tmp_template[tmpl_name] = utils.deep_update_dict(tmp_template[tmpl_name],
+                                                                                                             utils.str_dots_to_dict(elem['parameter'],
+                                                                                                             elem['format'].format(iter)))
+                                                        else:
+                                                            tmp_template[tmpl_name] = utils.str_dots_to_dict(elem['parameter'],
+                                                                                                             elem['format'].format(iter))
                                                 else:
                                                     if tmpl_name in tmp_template:
                                                         tmp_template[tmpl_name] = utils.deep_update_dict(tmp_template[tmpl_name],

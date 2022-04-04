@@ -1,0 +1,11 @@
+- name: Cumulus configure
+  shell: |
+    cat >> /etc/network/interfaces << EOF
+    auto swp{{ item.key }}
+    iface swp{{ item.key }}
+        address {{ item.value }}/{{ cidr | ipaddr('prefix') }}
+        broadcast {{ cidr | ipaddr('broadcast') }}
+    EOF
+    ifreload -a
+  with_dict: "{{ iPAddressDict }}"
+  when: iPAddressDict is defined

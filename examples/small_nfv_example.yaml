@@ -28,7 +28,15 @@ topology_template:
       requirements:
         - intCpd: my_vdu
         - intVirtualLinkDesc: my_vl
-        
+
+    new_int_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+      requirements:
+        - intCpd: my_vdu
+        - intVirtualLinkDesc: my_vl
+
     my_ext_cpd:
       type: nfv.nodes.VnfExtCpd
       properties:
@@ -36,7 +44,15 @@ topology_template:
       requirements:
         - VDUCpd: my_int_cpd
         - intVirtualLinkDesc: my_vl
-        
+
+    new_ext_cpd:
+      type: nfv.nodes.VnfExtCpd
+      properties:
+        cpdId: cpd_0
+      requirements:
+        - VDUCpd: new_int_cpd
+        - intVirtualLinkDesc: my_vl
+
     my_routing:
       type: nfv.nodes.VNFD.Routing
       properties:

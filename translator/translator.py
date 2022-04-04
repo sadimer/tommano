@@ -57,4 +57,4 @@ def translate(template_file, validate_only):
     except:
         logging.exception("Got exception on translating NFV to TOSCA")
         sys.exit(1)
-    return tosca_normative_tpl.get_result_template()
+    return tosca_normative_tpl.get_result()

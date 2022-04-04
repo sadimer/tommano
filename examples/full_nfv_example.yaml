@@ -96,12 +96,28 @@ topology_template:
         - intCpd: my_vdu
         - intVirtualLinkDesc: my_vl
 
+    new_int_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+      requirements:
+        - intCpd: new_vdu
+        - intVirtualLinkDesc: my_vl
+
     my_ext_cpd:
       type: nfv.nodes.VnfExtCpd
       properties:
         cpdId: cpd_0
       requirements:
         - VDUCpd: my_int_cpd
+        - intVirtualLinkDesc: my_vl
+
+    new_ext_cpd:
+      type: nfv.nodes.VnfExtCpd
+      properties:
+        cpdId: cpd_0
+      requirements:
+        - VDUCpd: new_int_cpd
         - intVirtualLinkDesc: my_vl
 
     my_firewall:
@@ -433,5 +449,5 @@ topology_template:
                 src: 0.0.0.0/0
                 dev: eth0
       requirements:
-        - vnfExtCpd: my_ext_cpd
+        - vnfExtCpd: new_ext_cpd
         - vdu: new_vdu

@@ -38,6 +38,11 @@ nfv.nodes.VDU:
       virtualStorageDesc.swImageDesc.operatingSystem:
         - type: tosca.nodes.Compute
           parameter: capabilities.os.properties.type
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "Configure_types/{}.yaml"
+        - type: tosca.nodes.Compute
+          parameter: properties.meta
       virtualStorageDesc.swImageDesc.swImage:
         - type: tosca.nodes.Compute
       virtualStorageDesc.swImageDesc.diskFormat:
@@ -58,6 +63,12 @@ nfv.nodes.VDU:
       swImageDesc.operatingSystem:
         - type: tosca.nodes.Compute
           parameter: capabilities.os.properties.type
+        - type: tosca.nodes.Compute
+          parameter: interfaces.Standard.configure.implementation
+          format: "Configure_types/{}.yaml"
+        - type: tosca.nodes.Compute
+          parameter: properties.meta
+          format: "{node_name}"
       swImageDesc.swImage:
         - type: tosca.nodes.Compute
       swImageDesc.diskFormat:
@@ -98,7 +109,7 @@ nfv.nodes.VnfVirtualLinkDesc:
 
 nfv.nodes.VnfExtCpd:
   properties:
-      addressData.l3AddressData.floatingIpActivated:
+      addressData.l3AddressData.floatingIpActivated: #TODO
         - type: tosca.nodes.network.Port
   requirements:
      VDUCpd:
@@ -143,36 +154,14 @@ nfv.nodes.VDUCpd:
         - type: tosca.nodes.Compute
           node_name: check
         - type: tosca.nodes.network.Port
-          parameter: 'requirements.[0].binding'
+          parameter: requirements.[0].binding
      intVirtualLinkDesc:
         - type: tosca.nodes.network.Network
           node_name: check
         - type: tosca.nodes.network.Port
-          parameter: 'requirements.[0].link'
+          parameter: requirements.[0].link
 
 nfv.nodes.VNFD:
-#  properties:
-#      vnfdId:
-#      vnfProvider:
-#      vnfProductName:
-#      vnfSoftwareVersion:
-#      vnfmInfo:
-#      deploymentFlavour.flavourId:
-#      deploymentFlavour.description:
-#      deploymentFlavour.vduProfile.vduId:
-#      deploymentFlavour.vduProfile.minNumberOfInstances:
-#      deploymentFlavour.vduProfile.maxNumberOfInstances:
-#      deploymentFlavour.instantiationLevel.levelId:
-#      deploymentFlavour.instantiationLevel.description:
-#      deploymentFlavour.instantiationLevel.numberOfInstances:
-#      deploymentFlavour.vnfLcmOperationsConfiguration.instantiateVnfOpConfig.parameter:
-#      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.parameter:
-#      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.minGracefulTerminationTimeout:
-#      deploymentFlavour.vnfLcmOperationsConfiguration.terminateVnfOpConfig.maxRecommendedGracefulTerminationTimeout:
-#      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.parameter:
-#      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.minGracefulStopTimeout:
-#      deploymentFlavour.vnfLcmOperationsConfiguration.operateVnfOpConfig.maxRecommendedGracefulStopTimeout:
-#      modifiableAttributes.metadata:
   requirements:
     vnfExtCpd:
       - type: tosca.nodes.network.Port
@@ -182,13 +171,12 @@ nfv.nodes.VNFD:
         parameter: properties.meta
         node_name: not change
 
-
 nfv.nodes.VNFD.DHCP:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.implementation
-          format: "DHCP.yaml"
+          format: "VNF_types/DHCP.yaml"
       modifiableAttributes.extension.defaultLeaseTime:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.inputs.DHCP_defaultLeaseTime
@@ -220,7 +208,7 @@ nfv.nodes.VNFD.DNS:
       modifiableAttributes.extension:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.implementation
-          format: "DNS.yaml"
+          format: "VNF_types/DNS.yaml"
       modifiableAttributes.extension.internalNetAddr:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.inputs.DNS_internalNetAddr
@@ -242,7 +230,7 @@ nfv.nodes.VNFD.Firewall:
       modifiableAttributes.extension:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.implementation
-          format: "Firewall.yaml"
+          format: "VNF_types/Firewall.yaml"
       modifiableAttributes.extension.standart_rules:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.inputs.Firewall_standart_rules
@@ -255,7 +243,7 @@ nfv.nodes.VNFD.Nat:
       modifiableAttributes.extension:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.implementation
-          format: "Nat.yaml"
+          format: "VNF_types/Nat.yaml"
       modifiableAttributes.extension.rules:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.inputs.Nat_rules
@@ -265,7 +253,7 @@ nfv.nodes.VNFD.Ntop_analyze:
       modifiableAttributes.extension:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.implementation
-          format: "Ntop.yaml"
+          format: "VNF_types/Ntop.yaml"
       modifiableAttributes.extension.endpointPort:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.inputs.Ntop_analyze_endpointPort
@@ -281,7 +269,7 @@ nfv.nodes.VNFD.Tshark_analyze:
       modifiableAttributes.extension:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.implementation
-          format: "Tshark.yaml"
+          format: "VNF_types/Tshark.yaml"
       modifiableAttributes.extension.duration:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.inputs.Tshark_analyze_duration
@@ -303,7 +291,7 @@ nfv.nodes.VNFD.Routing:
       modifiableAttributes.extension:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.implementation
-          format: "Routing.yaml"
+          format: "VNF_types/Routing.yaml"
       modifiableAttributes.extension.rules:
         - type: tosca.nodes.Compute
           parameter: interfaces.Standard.configure.inputs.Routing_rules

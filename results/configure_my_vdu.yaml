@@ -1,0 +1,298 @@
+- name: Firewall VNFD
+  shell: |
+    iptables -A {{ item.routingPath }} -p {{ item.protocol }} -j {{ item.action }} -s {{ item.sourceAddr }} -d {{ item.destAddr }} --sport {{ item.sourcePort }} --dport {{ item.destPort }}
+  with_items: "{{ Firewall_standart_rules }}"
+  when: Firewall_standart_rules is defined and (item.protocol == "udp" or item.protocol == "tcp")
+
+- name: Firewall VNFD
+  shell: |
+    iptables -A {{ item.routingPath }} -p {{ item.protocol }} -j {{ item.action }} -s {{ item.sourceAddr }} -d {{ item.destAddr }}
+  with_items: "{{ Firewall_standart_rules }}"
+  when: Firewall_standart_rules is defined and (item.protocol != "udp" and item.protocol != "tcp")
+
+- name: DPI VNFD
+  shell: |
+    iptables -A {{ item.routingPath }} -m ndpi --{{ item.deepProtocol }} -j {{ item.action }} -s {{ item.sourceAddr }} -d {{ item.destAddr }}
+  with_items: "{{ Firewall_dpi_rules }}"
+  when: Firewall_dpi_rules is defined
+ 
+- name: Nat VNFD
+  shell: |
+    cat >> /etc/cumulus/switchd.conf << EOF
+    nat.dynamic_enable = TRUE
+    nat.static_enable = TRUE
+    EOF
+- name: Restart service switchd
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: switchd
+    
+- name: Nat VNFD
+  shell: |
+    net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}
+    ifconfig eth0:{{ item.sourceAddrPr.split('.')[3] }} {{ item.sourceAddrPr }} netmask {{ item.sourceAddrPr | ipaddr('netmask') }}
+  with_items: "{{ Nat_rules }}"
+  when: Nat_rules is defined  and item.typeNat == "dnat"
+  
+- name: Nat VNFD
+  shell: |
+    net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}
+    ifconfig eth0:{{ item.destAddrPr.split('.')[3] }} {{ item.destAddrPr }} netmask {{ item.destAddrPr | ipaddr('netmask') }}
+  with_items: "{{ Nat_rules }}"
+  when: Nat_rules is defined and item.typeNat == "snat"
+  
+- name: Nat VNFD
+  shell: |
+    net commit
+- name: DHCP VNFD
+  shell: |
+    cat > /etc/default/isc-dhcp-server << EOF
+    DHCPD_CONF="-cf /etc/dhcp/dhcpd.conf"
+    DHCPD_PID="-pf /etc/dhcp/dhcpd.pid"
+    INTERFACES="{{ DHCP_interfaceName }}"
+    EOF
+    cat > /etc/dhcp/dhcpd.conf << EOF
+    default-lease-time {{ DHCP_defaultLeaseTime }};
+    max-lease-time {{ DHCP_maxLeaseTime }};
+    ddns-update-style none;
+    authoritative;
+    subnet {{ DHCP_internalNetCidr | ipaddr('network') }} netmask {{ DHCP_internalNetCidr | ipaddr('netmask') }} {
+        option routers {{ DHCP_gateway }};
+        option broadcast-address {{ DHCP_internalNetCidr |  ipaddr('broadcast') }};
+        range {{ DHCP_rangeStart }} {{ DHCP_rangeEnd }};
+    }
+    EOF
+- os_port_facts:
+    filters:
+      name: "{{ item.key }}"    
+  register: result
+  delegate_to: 127.0.0.1
+  with_dict: "{{ DHCP_staticHosts }}"
+  when: DHCP_staticHosts is defined
+  
+- name: DHCP VNFD
+  shell: |
+    cat >> /etc/dhcp/dhcpd.conf << EOF
+    host {{ item.ansible_facts.openstack_ports[0].name }} {
+        hardware ethernet {{ item.ansible_facts.openstack_ports[0].mac_address }};
+        fixed-address {{ item.ansible_facts.openstack_ports[0].fixed_ips[0].ip_address }};
+    }
+    EOF
+  with_items: "{{ result.results }}"
+
+- name: Restart service dhcpd
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: dhcpd
+- name: DNS VNFD
+  shell: |
+    cat > /etc/default/bind9 << EOF
+    RESOLVCONF=no
+    OPTIONS="-u bind -{{ DNS_iPAddressType[3] }}"
+    EOF
+- name: Restart service bind9
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: bind9
+
+- name: DNS VNFD
+  shell: |
+    cat > /etc/bind/named.conf.options << EOF
+    acl "trusted" {
+        {{ DNS_internalNetAddr }};
+    EOF
+        
+- name: DNS VNFD
+  shell: |
+    cat >> /etc/bind/named.conf.options << EOF
+        {{ item.value }};
+    EOF
+  with_dict: "{{ DNS_staticHosts }}"
+  when: DNS_staticHosts is defined
+
+- name: DNS VNFD
+  shell: |
+    cat >> /etc/bind/named.conf.options << EOF
+    };
+    options {
+        directory "/var/cache/bind";
+        recursion yes;
+        allow-recursion { trusted; };
+        listen-on { {{ DNS_internalNetAddr }}; };
+        allow-transfer { none; };
+        forwarders {
+    EOF
+    
+- name: DNS VNFD
+  shell: |
+    cat >> /etc/bind/named.conf.options << EOF
+            {{ item.value }};
+    EOF
+  with_dict: "{{ DNS_forwarders }}"
+  when: DNS_forwarders is defined
+  
+- name: DNS VNFD
+  shell: |
+    cat >> /etc/bind/named.conf.options << EOF
+        };
+        dnssec-validation auto;
+    };
+    EOF
+- name: DNS VNFD
+  shell: |    
+    cat >> /etc/bind/named.conf.local << EOF
+    zone "{{ DNS_domainName }}" {
+      type master;
+      file "/etc/bind/zones/db.{{ DNS_domainName }}";
+    };
+    zone "{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa" {
+      type master;
+      file "/etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}";
+    };
+    EOF
+    
+- name: DNS VNFD
+  shell: | 
+    mkdir /etc/bind/zones
+    cat > /etc/bind/zones/db.{{ DNS_domainName }} << EOF
+    ;
+    ; BIND data file for local loopback interface
+    ;
+    \$TTL 604800
+    @ IN SOA cumulus.{{ DNS_domainName }}. admin.{{ DNS_domainName }}. (
+      3 ; Serial
+      604800 ; Refresh
+      86400 ; Retry
+      2419200 ; Expire
+      604800 ) ; Negative Cache TTL
+    ;
+     IN NS cumulus.{{ DNS_domainName }}.
+    cumulus.{{ DNS_domainName }}. IN A {{ DNS_internalNetAddr }}
+    EOF
+    
+- name: DNS VNFD
+  shell: | 
+    mkdir /etc/bind/zones
+    cat >> /etc/bind/zones/db.{{ DNS_domainName }} << EOF
+    {{ item.key }}.{{ DNS_domainName }}. IN A {{ item.value }}
+    EOF
+  with_dict: "{{ DNS_staticHosts }}"
+  when: DNS_staticHosts is defined
+  
+- name: DNS VNFD
+  shell: | 
+    cat > /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }} << EOF
+    ;
+    ; BIND reverse data file for local loopback interface
+    ;
+    \$TTL 604800
+    @ IN SOA cumulus.{{ DNS_domainName }}. admin.{{ DNS_domainName }}. (
+      3 ; Serial
+      604800 ; Refresh
+      86400 ; Retry
+      2419200 ; Expire
+      604800 ) ; Negative
+    ; name servers
+     IN NS cumulus.{{ DNS_domainName }}.
+    ; PTR Records
+    {{ DNS_internalNetAddr.split('.')[3] }} IN PTR cumulus.{{ DNS_domainName }}.
+    EOF
+    
+- name: DNS VNFD
+  shell: | 
+    cat >> /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }} << EOF
+    {{ item.value.split('.')[3] }} IN PTR {{ item.key }}.{{ DNS_domainName }}.
+    EOF
+  with_dict: "{{ DNS_staticHosts }}"
+  when: DNS_staticHosts is defined
+
+- name: DNS VNFD
+  shell: | 
+    named-checkconf
+    named-checkzone {{ DNS_domainName }} /etc/bind/zones/db.{{ DNS_domainName }}
+    named-checkzone {{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}
+  
+- name: Restart service bind9
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: bind9
+
+- name: Tshark VNFD
+  shell: |
+    cat > /usr/bin/myshark << EOF
+    #!/bin/bash
+    tshark -b duration:{{ Tshark_analyze_duration }} -b files:{{ Tshark_analyze_files }} -f "{{ Tshark_analyze_captureFilter }}" -w {{ Tshark_analyze_pathToPcap }} -i {{ Tshark_analyze_interfaceName }}
+    EOF
+    
+- name: Restart service tshark
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: tshark
+- name: Ntop VNFD
+  shell: |
+    cat > /run/ntopng.conf << EOF
+    -d=/var/lib/ntopng
+    EOF
+    
+- name: Ntop VNFD
+  shell: |
+    cat >> /run/ntopng.conf << EOF
+    -w={{ Ntop_analyze_endpointPort }}
+    EOF
+  when: Ntop_analyze_endpointPort is defined
+  
+- name: Ntop VNFD
+  shell: |
+    cat >> /run/ntopng.conf << EOF
+    -m={{ item }}
+    EOF
+  with_items: "{{ Ntop_analyze_internalNetCidr }}"
+  when: Ntop_analyze_internalNetCidr is defined
+  
+- name: Ntop VNFD
+  shell: |
+    cat >> /run/ntopng.conf << EOF
+    -i={{ item }}
+    EOF
+  with_items: "{{ Ntop_analyze_interfacesNames }}"
+  when: Ntop_analyze_interfacesNames is defined
+
+- name: Restart service ntopng
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: ntopng
+- name: Routing VNFD
+  shell: |
+    ip rule add from {{ item.sourceAddr }} to {{ item.destAddr }} table 10
+  with_items: "{{ Routing_rules }}"
+  when: Routing_rules is defined and item.sourceAddr is defined and item.destAddr is defined 
+
+- name: Routing VNFD
+  shell: |
+    ip rule add to {{ item.destAddr }} table 10
+  with_items: "{{ Routing_rules }}"
+  when: Routing_rules is defined and item.sourceAddr is not defined and item.destAddr is defined 
+  
+- name: Routing VNFD
+  shell: |
+    ip rule add from {{ item.sourceAddr }} table 10
+  with_items: "{{ Routing_rules }}"
+  when: Routing_rules is defined and item.sourceAddr is defined and item.destAddr is not defined 
+  
+- name: Routing VNFD
+  shell: |
+    ip route add {{ item.destCidr }} via {{ item.gateway }} dev {{ item.dev }} src {{ item.src }} table 10
+  with_items: "{{ Routing_routes }}"
+  when: Routing_routes is defined and item.src is defined
+  
+- name: Routing VNFD
+  shell: |
+    ip route add {{ item.destCidr }} via {{ item.gateway }} dev {{ item.dev }} table 10
+  with_items: "{{ Routing_routes }}"
+  when: Routing_routes is defined and item.src is not defined
