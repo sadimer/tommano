@@ -147,6 +147,36 @@ topology_template:
                 sourceAddrPr: 10.100.160.10/24
                 destAddrPr: 192.168.2.10/24
                 protocol: icmp
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.11/24
+                destAddrPr: 10.100.160.11/24
+                protocol: tcp
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.11/24
+                destAddrPr: 10.100.160.11/24
+                protocol: udp
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.11/24
+                destAddrPr: 10.100.160.11/24
+                protocol: icmp
+              - typeNat: static
+                routingType: dnat
+                sourceAddrPr: 10.100.160.11/24
+                destAddrPr: 192.168.2.11/24
+                protocol: udp
+              - typeNat: static
+                routingType: dnat
+                sourceAddrPr: 10.100.160.11/24
+                destAddrPr: 192.168.2.11/24
+                protocol: tcp
+              - typeNat: static
+                routingType: dnat
+                sourceAddrPr: 10.100.160.11/24
+                destAddrPr: 192.168.2.11/24
+                protocol: icmp
       requirements:
        - vnfExtCpd: ext_gateway_cpd
        - vdu: router_vdu
