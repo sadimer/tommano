@@ -1,8 +1,0 @@
-configure_my_vdu.yaml
-configure_my_vdu.yaml
-configure_my_vdu.yaml
-configure_my_vdu.yaml
-configure_my_vdu.yaml
-configure_my_vdu.yaml
-configure_my_vdu.yaml
-configure_new_vdu.yaml
