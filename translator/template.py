@@ -97,6 +97,14 @@ class ToscaNormativeTemplate(object):
                     if 'requirements' in tmp_template[tmpl_name]:
                         address = tmp_template[tmpl_name]['properties']['ip_address']
                         for elem in tmp_template[tmpl_name]['requirements']:
+                            if 'link' in elem:
+                                if 'properties' in self.new_element_templates[elem['link']] and 'cidr' in self.new_element_templates[elem['link']]['properties']:
+                                    cidr = self.new_element_templates[elem['link']]['properties']['cidr']
+                                else:
+                                    logging.error("Error! Network dont have cidr")
+                                    sys.exit(1)
+                                break
+                        for elem in tmp_template[tmpl_name]['requirements']:
                             if 'binding' in elem:
                                 if elem['binding'] not in self.num_addresses:
                                     self.num_addresses[elem['binding']] = [address]
@@ -109,7 +117,7 @@ class ToscaNormativeTemplate(object):
                                 self.new_element_templates[elem['binding']] = utils.deep_update_dict(
                                     self.new_element_templates[elem['binding']], {'interfaces': {'Standard': {
                                         'configure': {'inputs': {
-                                            'iPAddressDict': {len(self.num_addresses[elem['binding']]): address}}}}}})
+                                            'iPAddressDict': {len(self.num_addresses[elem['binding']]): {address: cidr}}}}}}})
                                 break
             elif tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Network':
                 net_name = 'net' + str(utils.get_random_int(0, 1024))

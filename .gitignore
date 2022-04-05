@@ -20,7 +20,6 @@ parts/
 sdist/
 var/
 wheels/
-results/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
@@ -135,3 +134,4 @@ dmypy.json
 
 /examples/configure*
 /examples/result.yaml
+results/
