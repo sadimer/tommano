@@ -96,14 +96,18 @@ class ToscaNormativeTemplate(object):
                     # не самое удачное решение, но работает
                     if 'requirements' in tmp_template[tmpl_name]:
                         address = tmp_template[tmpl_name]['properties']['ip_address']
+                        ext = False
                         for elem in tmp_template[tmpl_name]['requirements']:
                             if 'link' in elem:
+                                ext = False
                                 if 'properties' in self.new_element_templates[elem['link']] and 'cidr' in self.new_element_templates[elem['link']]['properties']:
                                     cidr = self.new_element_templates[elem['link']]['properties']['cidr']
                                 else:
                                     logging.error("Error! Network dont have cidr")
                                     sys.exit(1)
                                 break
+                            else:
+                                ext = True
                         for elem in tmp_template[tmpl_name]['requirements']:
                             if 'binding' in elem:
                                 if elem['binding'] not in self.num_addresses:
@@ -113,11 +117,18 @@ class ToscaNormativeTemplate(object):
                                 else:
                                     break
                                 # убрать?
-                                self.new_element_templates[elem['binding']] = utils.deep_update_dict(self.new_element_templates[elem['binding']], {'properties': {'ports': {'external': {'addresses': [address]}}}})
-                                self.new_element_templates[elem['binding']] = utils.deep_update_dict(
-                                    self.new_element_templates[elem['binding']], {'interfaces': {'Standard': {
-                                        'configure': {'inputs': {
-                                            'iPAddressDict': {len(self.num_addresses[elem['binding']]): {address: cidr}}}}}}})
+                                if ext:
+                                    self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                        self.new_element_templates[elem['binding']],
+                                        {'properties': {'ports': {'external': {'addresses': [address]}}}})
+                                else:
+                                    self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                        self.new_element_templates[elem['binding']],
+                                        {'properties': {'ports': {'internal': {'addresses': [address]}}}})
+                                    self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                        self.new_element_templates[elem['binding']], {'interfaces': {'Standard': {
+                                            'configure': {'inputs': {
+                                                'iPAddressDict': {len(self.num_addresses[elem['binding']]): {address: cidr}}}}}}})
                                 break
             elif tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Network':
                 net_name = 'net' + str(utils.get_random_int(0, 1024))

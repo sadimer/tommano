@@ -10,7 +10,7 @@
     state: restarted
     daemon_reload: yes
     name: switchd
-    
+
 - name: Nat VNFD
   shell: |
     net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}

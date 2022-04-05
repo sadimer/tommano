@@ -1,1 +1,300 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
 
+topology_template:
+  node_templates:
+    router_vdu:
+      type: nfv.nodes.VDU
+      properties:
+        vduId: vdu_0
+        name: router
+        virtualComputeDesc:
+          virtualComputeDescId: vc_0
+          virtualCpu:
+            numVirtualCpu: 1
+            cpuArchitecture: x86
+          virtualMemory:
+            virtualMemSize: 1024 MiB
+        virtualStorageDesc:
+          id: sd_0
+          typeOfStorage: object
+          sizeOfStorage: 50 GiB
+        swImageDesc:
+          id: sw_0
+          version: v4.1
+          minDisk: 20 GiB
+          size: 2.55 GiB
+          operatingSystem: cumulus_vx
+          diskFormat: qcow2
+          containerFormat: BARE
+          
+    internal_vl:
+      type: nfv.nodes.VnfVirtualLinkDesc
+      properties:
+        virtualLinkDescId: vl_0
+        connectivityType:
+          layerProtocol: IPV4
+        virtualLinkDescFlavour:
+          flavourId: fl_vl_0
+        cidrData:
+          networkName: my_net
+          cidr: 192.168.2.0/24
+          startIp: 192.168.2.10
+          endIp: 192.168.2.100
+          gatewayIp: 192.168.2.1
+          networkType: geneve  
+          
+    gateway_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+        layerProtocol: { get_property: [ internal_vl, connectivityType, layerProtocol ] }
+        addressData:
+          addressType: IP
+          l3AddressData:
+            iPAddressAssignment: true
+            iPAddress: 192.168.2.1
+            floatingIpActivated: false
+            iPAddressType: IPV4
+            numberOfIpAddress: 1
+      requirements:
+        - intCpd: router_vdu
+        - intVirtualLinkDesc: internal_vl
+        
+    ext_gateway_cpd:
+      type: nfv.nodes.VnfExtCpd
+      properties:
+        cpdId: cpd_0
+      requirements:
+        - VDUCpd: gateway_cpd
+        - intVirtualLinkDesc: internal_vl
+        
+    external_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+        layerProtocol: IPV4
+        addressData:
+          addressType: IP
+          l3AddressData:
+            iPAddressAssignment: true
+            iPAddress: 10.100.160.42
+            floatingIpActivated: false
+            iPAddressType: IPV4
+            numberOfIpAddress: 1
+      requirements:
+        - intCpd: router_vdu
+        
+    dhcp:
+      type: nfv.nodes.VNFD.DHCP
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: DHCP
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            defaultLeaseTime: 600
+            maxLeaseTime: 7200
+            interfaceName: swp1
+            gateway: { get_property: [ internal_vl, cidrData, gatewayIp ] }
+            internalNetCidr: { get_property: [ internal_vl, cidrData, cidr ] }
+            rangeStart: 192.168.2.30 192.168.2.200
+            rangeEnd: 192.168.2.100
+            staticHosts:
+              host1: { get_property: [ port_0, ip_address ] }
+              host2: { get_property: [ port_1, ip_address ] }
+      requirements:
+       - vnfExtCpd: ext_gateway_cpd
+       - vdu: router_vdu
+        
+    nat:
+      type: nfv.nodes.VNFD.Nat
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: nat
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            rules:
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.10/24
+                destAddrPr: 10.100.160.10/24
+                protocol: tcp
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.10/24
+                destAddrPr: 10.100.160.10/24
+                protocol: udp
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.10/24
+                destAddrPr: 10.100.160.10/24
+                protocol: icmp
+              - typeNat: static
+                routingType: dnat
+                sourceAddrPr: 10.100.160.10/24
+                destAddrPr: 192.168.2.10/24
+                protocol: udp
+              - typeNat: static
+                routingType: dnat
+                sourceAddrPr: 10.100.160.10/24
+                destAddrPr: 192.168.2.10/24
+                protocol: tcp
+              - typeNat: static
+                routingType: dnat
+                sourceAddrPr: 10.100.160.10/24
+                destAddrPr: 192.168.2.10/24
+                protocol: icmp
+      requirements:
+       - vnfExtCpd: ext_gateway_cpd
+       - vdu: router_vdu
+       
+    routing:
+      type: nfv.nodes.VNFD.Routing
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: Routing
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            rules:
+              - destAddr: { get_property: [ port_0, ip_address ] }
+              - destAddr: { get_property: [ port_1, ip_address ] }
+            routes:
+              - destCidr: default
+                gateway: { get_property: [ internal_vl, cidrData, gatewayIp ] }
+                dev: swp1
+      requirements:
+       - vnfExtCpd: ext_gateway_cpd
+       - vdu: router_vdu
+       
+    dns:
+      type: nfv.nodes.VNFD.DNS
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: DNS
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            internalNetAddr: { get_property: [ internal_vl, cidrData, gatewayIp ] }
+            staticHosts:
+              host1: { get_property: [ port_0, ip_address ] }
+              host2: { get_property: [ port_1, ip_address ] }
+            domainName: example.com
+            forwarders:
+              google1: 8.8.8.8
+            iPAddressType: IPV4
+      requirements:
+       - vnfExtCpd: ext_gateway_cpd
+       - vdu: router_vdu
+       
+    firewall:
+      type: nfv.nodes.VNFD.Firewall
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: firewall
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            dpi_rules:
+              - action: DROP
+                deepProtocol: youtube
+                routingPath: FORWARD
+              - action: DROP
+                deepProtocol: wikipedia
+                routingPath: FORWARD
+      requirements:
+       - vnfExtCpd: ext_gateway_cpd
+       - vdu: router_vdu
+       
+    ntop:
+      type: nfv.nodes.VNFD.Ntop_analyze
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: Ntop_analyze
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            endpointPort: 3000
+            internalNetCidr:
+              - { get_property: [ internal_vl, cidrData, cidr ] }
+            interfacesNames:
+              - eth0
+              - swp1
+      requirements:
+       - vnfExtCpd: ext_gateway_cpd
+       - vdu: router_vdu
+       
+    tshark:
+      type: nfv.nodes.VNFD.Tshark_analyze
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: Tshark_analyze
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            duration: 10000
+            files: 1
+            pathToPcap: /tmp/dump.pcap
+            interfaceName: eth0
+            captureFilter: icmp && host 10.100.160.10
+      requirements:
+       - vnfExtCpd: ext_gateway_cpd
+       - vdu: router_vdu
+       
+    port_0:
+      type: tosca.nodes.network.Port
+      properties:
+        ip_address: 192.168.2.10
+      requirements:
+        - link: internal_vl
+        
+    port_1:
+      type: tosca.nodes.network.Port
+      properties:
+        ip_address: 192.168.2.11
+      requirements:
+        - link: internal_vl
+        
+    custom_server_0:
+      type: tosca.nodes.Compute
+      attributes:
+        ports:
+          internal:
+            addresses:
+            - { get_property: [ port_0, ip_address ] }
+      capabilities:
+        host:
+          properties:
+            num_cpus: 1
+            disk_size: 50 GiB
+            mem_size: 2048 MiB
+        os:
+          properties:
+            architecture: x86_64
+            type: cirros
+            
+    custom_server_1:
+      type: tosca.nodes.Compute
+      attributes:
+        ports:
+          internal:
+            addresses:
+            - { get_property: [ port_1, ip_address ] }
+      capabilities:
+        host:
+          properties:
+            num_cpus: 1
+            disk_size: 50 GiB
+            mem_size: 2048 MiB
+        os:
+          properties:
+            architecture: x86_64
+            type: cirros

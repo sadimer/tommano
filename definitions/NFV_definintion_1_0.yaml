@@ -540,7 +540,7 @@ data_types:
     properties:
       standart_rules:
         type: list
-        required: true
+        required: false
         entry_schema:
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall.StandartRule
       dpi_rules:
