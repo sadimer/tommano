@@ -43,16 +43,40 @@ topology_template:
     new_vdu:
       type: nfv.nodes.VDU
       properties:
+        vduId: vdu_0
+        name: vdu_0
+        description: simple vdu
         virtualComputeDesc:
+          virtualComputeDescId: vc_0
           virtualCpu:
             numVirtualCpu: 1
             cpuArchitecture: x86
           virtualMemory:
             virtualMemSize: 1024 MiB
         virtualStorageDesc:
-          sizeOfStorage: 100 GiB
+          id: sd_0
+          typeOfStorage: object
+          sizeOfStorage: 50 GiB
+          swImageDesc:
+            id: sw_0
+            version: v4.1
+            checksum: some checksum
+            minDisk: 20 GiB
+            size: 2.55 GiB
+            operatingSystem: cumulus_vx
+            swImage: some url
+            diskFormat: qcow2
+            containerFormat: BARE
         swImageDesc:
           id: sw_0
+          version: v4.1
+          checksum: some checksum
+          minDisk: 20 GiB
+          size: 2.55 GiB
+          operatingSystem: cumulus_vx
+          swImage: some url
+          diskFormat: qcow2
+          containerFormat: BARE
 
     my_vl:
       type: nfv.nodes.VnfVirtualLinkDesc
@@ -100,6 +124,23 @@ topology_template:
       type: nfv.nodes.VDUCpd
       properties:
         cpdId: cpd_0
+        layerProtocol: { get_property: [ my_vl, connectivityType, layerProtocol ] }
+        description: simple cpd description
+        addressData:
+          addressType: IP
+          l2AddressData:
+            macAddressAssignment: true
+            macAddress: 50:46:5D:6E:8C:21
+          l3AddressData:
+            iPAddressAssignment: true
+            iPAddress: 192.168.2.12
+            floatingIpActivated: false
+            iPAddressType: IPV4
+            numberOfIpAddress: 1
+        virtualNetworkInterfaceRequirements:
+          name: test_requirements
+          supportMandatory: true
+          requirement: requirements
       requirements:
         - intCpd: new_vdu
         - intVirtualLinkDesc: my_vl
@@ -438,16 +479,44 @@ topology_template:
     new_routing:
       type: nfv.nodes.VNFD.Routing
       properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: Routing
+        vnfSoftwareVersion: v1.0
+        vnfmInfo: some info
+        deploymentFlavour:
+          flavourId: df_0
+          description: simple deployment flavour
+          vduProfile:
+            vduId: { get_property: [ my_vdu, vduId ] }
+            minNumberOfInstances: 1
+            maxNumberOfInstances: 1
+          instantiationLevel:
+            levelId: lvl_0
+            description: simple level description
+            numberOfInstances: 1
+          vnfLcmOperationsConfiguration:
+            instantiateVnfOpConfig:
+              parameter: some_script.yaml
+            terminateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulTerminationTimeout: 50
+              maxRecommendedGracefulTerminationTimeout: 100
+            operateVnfOpConfig:
+              parameter: some_script.yaml
+              minGracefulStopTimeout: 50
+              maxRecommendedGracefulStopTimeout: 100
         modifiableAttributes:
           extension:
             rules:
               - sourceAddr: 0.0.0.0
                 destAddr: 0.0.0.0
             routes:
-              - destCidr: 0.0.0.0/0
-                gateway: 1.1.1.1
+              - destCidr: { get_property: [ my_vl, cidrData, cidr ] }
+                gateway: { get_property: [ my_vl, cidrData, gatewayIp ] }
                 src: 0.0.0.0/0
                 dev: eth0
+          metadata: some_script.yaml
       requirements:
         - vnfExtCpd: new_ext_cpd
         - vdu: new_vdu

@@ -12,6 +12,7 @@ TOSCA_DEF_PATH = '/definitions/TOSCA_definition_1_0.yaml'
 MAP_PATH = '/definitions/TOSCA_NFV_mapping.yaml'
 PROJECT_NAME = 'nfv_tosca_translator'
 
+
 def translate(template_file, validate_only):
     with open(template_file, "r") as f:
         try:
@@ -42,7 +43,7 @@ def translate(template_file, validate_only):
     if validate_only:
         logging.info("Template successfully passed validation")
         tpl = {"template successfully passed validation": template_file}
-        return tpl
+        return tpl, {}
 
     map_file = utils.get_project_root_path() + MAP_PATH
     with open(map_file, "r") as f:
@@ -53,7 +54,7 @@ def translate(template_file, validate_only):
             sys.exit(1)
 
     try:
-        tosca_normative_tpl = ToscaNormativeTemplate(tosca_parser_tpl=tosca_parser_tpl, yaml_dict_mapping = mapping)
+        tosca_normative_tpl = ToscaNormativeTemplate(tosca_parser_tpl=tosca_parser_tpl, yaml_dict_mapping=mapping)
     except:
         logging.exception("Got exception on translating NFV to TOSCA")
         sys.exit(1)

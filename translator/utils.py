@@ -1,16 +1,18 @@
 import os
 import itertools
-from random import randint,seed
+from random import randint, seed
 from time import time
 
 
 def get_project_root_path():
     return os.path.dirname(os.path.dirname(__file__))
 
+
 def get_random_int(start, end):
     seed(time())
     r = randint(start, end)
     return r
+
 
 def tosca_type_parse(_type):
     tosca_type = _type.split(".", 2)
@@ -22,11 +24,15 @@ def tosca_type_parse(_type):
         return namespace, category, type_name
     return None, None, None
 
+
 def str_dots_to_dict(str, param):
     arr = str.split('.')[::-1]
     res = {}
     new_res = {}
-    res[arr[0]] = param
+    if arr[0] != '[0]' and arr[0] != '0' and arr[0] != '[]':
+        res[arr[0]] = param
+    else:
+        res = [param]
     for i in range(1, len(arr)):
         if arr[i] != '[0]' and arr[i] != '0' and arr[i] != '[]':
             new_res[arr[i]] = res
@@ -36,8 +42,10 @@ def str_dots_to_dict(str, param):
         new_res = {}
     return res
 
+
 def str_dots_to_arr(str):
     return str.split('.')
+
 
 def deep_update_dict(source, overrides):
     assert isinstance(source, dict)
@@ -52,6 +60,7 @@ def deep_update_dict(source, overrides):
         else:
             source[k] = v
     return source
+
 
 def generate_random_subnet():
     addr3 = get_random_int(0, 255)

@@ -1,0 +1,62 @@
+topology_template:
+  node_templates:
+    my_ext_cpd:
+      properties:
+        ip_address: 10.195.189.165
+      requirements:
+      - binding: my_vdu
+      - link: my_vl
+      type: tosca.nodes.network.Port
+    my_vdu:
+      capabilities:
+        host:
+          properties:
+            disk_size: 50 GiB
+            mem_size: 1024 MiB
+            num_cpus: 1
+        os:
+          properties:
+            architecture: x86
+            type: cumulus_vx
+      interfaces:
+        Standard:
+          configure:
+            implementation: configure_my_vdu.yaml
+            inputs:
+              Routing_routes:
+              - destCidr: 0.0.0.0/0
+                dev: eth0
+                gateway: 1.1.1.1
+                src: 0.0.0.0/0
+              Routing_rules:
+              - destAddr: 0.0.0.0
+                sourceAddr: 0.0.0.0
+              iPAddressDict:
+                1:
+                  10.195.189.165: 10.195.189.0/24
+                2:
+                  10.195.189.159: 10.195.189.0/24
+      properties:
+        meta: my_vdu
+        ports:
+          internal:
+            addresses:
+            - 10.195.189.165
+            - 10.195.189.159
+      type: tosca.nodes.Compute
+    my_vl:
+      properties:
+        cidr: 10.195.189.0/24
+        end_ip: 10.195.189.252
+        gateway_ip: 10.195.189.1
+        network_name: net48
+        start_ip: 10.195.189.10
+      type: tosca.nodes.network.Network
+    new_ext_cpd:
+      properties:
+        ip_address: 10.195.189.159
+      requirements:
+      - binding: my_vdu
+      - link: my_vl
+      type: tosca.nodes.network.Port
+tosca_definitions_version: tosca_simple_yaml_1_0
