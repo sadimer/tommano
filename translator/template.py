@@ -60,7 +60,7 @@ class ToscaNormativeTemplate(object):
                         with open(def_file, "r+") as f:
                             vnf_def = f.readlines()
                     except:
-                        logging.error("Error! Failed to open VNF template file")
+                        logging.error("Error! Failed to open VNF template file.")
                         sys.exit(1)
 
                     if 'properties' in tmp_template[tmpl_name]:
@@ -71,7 +71,7 @@ class ToscaNormativeTemplate(object):
                             else:
                                 self.generated_scripts[script] += vnf_def
                         else:
-                            logging.error("Error! VNFD hasnt meta, plase check mapping for VNFD")
+                            logging.error("Error! VNFD hasnt meta, plase check mapping for VNFD.")
                             sys.exit(1)
 
             if tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Port':
@@ -94,7 +94,7 @@ class ToscaNormativeTemplate(object):
                                 flag = True
                                 break
                         if not flag:
-                            logging.error("Error! No link requirement")
+                            logging.error("Error! No link requirement.")
                             sys.exit(1)
                 else:
                     # не самое удачное решение, но работает
@@ -108,7 +108,7 @@ class ToscaNormativeTemplate(object):
                                         self.new_element_templates[elem['link']]['properties']:
                                     cidr = self.new_element_templates[elem['link']]['properties']['cidr']
                                 else:
-                                    logging.error("Error! Network dont have cidr")
+                                    logging.error("Error! Network dont have cidr.")
                                     sys.exit(1)
                                 break
                             else:
@@ -221,7 +221,7 @@ class ToscaNormativeTemplate(object):
                 break
             tmpl_properties = tmpl_properties[key]
         if tmpl_properties is None:
-            logging.error("Failed to get property: %s" % yaml.dump(value))
+            logging.error("Failed to get property: %s." % yaml.dump(value))
             sys.exit(1)
         return tmpl_properties
 
@@ -302,14 +302,14 @@ class ToscaNormativeTemplate(object):
                                                 else:
                                                     tmp_template[tmpl_name] = {'type': elem['type']}
                                             else:
-                                                logging.error("Error! Undefined node type in template")
+                                                logging.error("Error! Undefined node type in template.")
                                                 sys.exit(1)
 
                                             if 'node_name' in elem:
                                                 if elem['node_name'] == 'check':
                                                     if iter not in self.new_element_templates or elem['type'] != \
                                                             self.new_element_templates[iter]['type']:
-                                                        logging.error("Error! The requirement is not defined")
+                                                        logging.error("Error! The requirement is not defined.")
                                                         sys.exit(1)
                                                 elif elem['node_name'] == 'rename':
                                                     if iter in self.new_element_templates and elem['type'] == \
@@ -319,7 +319,7 @@ class ToscaNormativeTemplate(object):
                                                             self.new_element_templates.pop(iter))
                                                         additional_keys += [iter]
                                                     else:
-                                                        logging.error("Error! The requirement is not defined")
+                                                        logging.error("Error! The requirement is not defined.")
                                                         sys.exit(1)
                                                 elif elem['node_name'] == 'not change':
                                                     if iter in self.new_element_templates and elem['type'] == \
@@ -329,7 +329,7 @@ class ToscaNormativeTemplate(object):
                                                             tmp_template[tmpl_name])
                                                         new_additional_keys += [tmpl_name]
                                                     else:
-                                                        logging.error("Error! The requirement is not defined")
+                                                        logging.error("Error! The requirement is not defined.")
                                                         sys.exit(1)
 
                         self.new_element_templates = utils.deep_update_dict(self.new_element_templates,

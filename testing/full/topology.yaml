@@ -4,8 +4,8 @@ topology_template:
       properties:
         ip_address: 192.168.2.11
       requirements:
-        - binding: my_vdu
-        - link: my_vl
+      - binding: my_vdu
+      - link: my_vl
       type: tosca.nodes.network.Port
     my_vdu:
       capabilities:
@@ -43,38 +43,38 @@ topology_template:
                 host1: 192.168.2.50
                 host2: 192.168.2.51
               Firewall_dpi_rules:
-                - action: DROP
-                  deepProtocol: youtube
-                  destAddr: 8.8.8.8
-                  routingPath: FORWARD
-                  sourceAddr: 10.10.10.10
+              - action: DROP
+                deepProtocol: youtube
+                destAddr: 8.8.8.8
+                routingPath: FORWARD
+                sourceAddr: 10.10.10.10
               Firewall_standart_rules:
-                - action: ACCEPT
-                  destAddr: 8.8.8.8
-                  destPort: 2202
-                  protocol: tcp
-                  routingPath: FORWARD
-                  sourceAddr: 10.10.10.10
-                  sourcePort: 22
+              - action: ACCEPT
+                destAddr: 8.8.8.8
+                destPort: 2202
+                protocol: tcp
+                routingPath: FORWARD
+                sourceAddr: 10.10.10.10
+                sourcePort: 22
               Nat_rules:
-                - destAddrPr: 8.8.8.8/24
-                  protocol: tcp
-                  routingType: snat
-                  sourceAddrPr: 10.10.10.10/24
-                  typeNat: static
+              - destAddrPr: 8.8.8.8/24
+                protocol: tcp
+                routingType: snat
+                sourceAddrPr: 10.10.10.10/24
+                typeNat: static
               Ntop_analyze_endpointPort: 3000
               Ntop_analyze_interfacesNames:
-                - eth0
+              - eth0
               Ntop_analyze_internalNetCidr:
-                - 192.168.2.0/24
+              - 192.168.2.0/24
               Routing_routes:
-                - destCidr: 192.168.2.0/24
-                  dev: eth0
-                  gateway: 192.168.2.1
-                  src: 0.0.0.0/0
+              - destCidr: 192.168.2.0/24
+                dev: eth0
+                gateway: 192.168.2.1
+                src: 0.0.0.0/0
               Routing_rules:
-                - destAddr: 0.0.0.0
-                  sourceAddr: 0.0.0.0
+              - destAddr: 0.0.0.0
+                sourceAddr: 0.0.0.0
               Tshark_analyze_captureFilter: dst port 135 and tcp port 135 and ip[2:2]==48
               Tshark_analyze_duration: 10000
               Tshark_analyze_files: 1
@@ -88,7 +88,7 @@ topology_template:
         ports:
           internal:
             addresses:
-              - 192.168.2.11
+            - 192.168.2.11
       type: tosca.nodes.Compute
     my_vl:
       properties:
@@ -104,8 +104,8 @@ topology_template:
       properties:
         ip_address: 192.168.2.12
       requirements:
-        - binding: new_vdu
-        - link: my_vl
+      - binding: new_vdu
+      - link: my_vl
       type: tosca.nodes.network.Port
     new_vdu:
       capabilities:
@@ -125,13 +125,13 @@ topology_template:
             implementation: configure_new_vdu.yaml
             inputs:
               Routing_routes:
-                - destCidr: 192.168.2.0/24
-                  dev: eth0
-                  gateway: 192.168.2.1
-                  src: 0.0.0.0/0
+              - destCidr: 192.168.2.0/24
+                dev: eth0
+                gateway: 192.168.2.1
+                src: 0.0.0.0/0
               Routing_rules:
-                - destAddr: 0.0.0.0
-                  sourceAddr: 0.0.0.0
+              - destAddr: 0.0.0.0
+                sourceAddr: 0.0.0.0
               iPAddressDict:
                 1:
                   192.168.2.12: 192.168.2.0/24
@@ -140,6 +140,6 @@ topology_template:
         ports:
           internal:
             addresses:
-              - 192.168.2.12
+            - 192.168.2.12
       type: tosca.nodes.Compute
 tosca_definitions_version: tosca_simple_yaml_1_0

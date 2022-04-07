@@ -1,3 +1,5 @@
+import os
+
 import yaml
 import logging
 import sys
@@ -13,12 +15,24 @@ MAP_PATH = '/definitions/TOSCA_NFV_mapping.yaml'
 PROJECT_NAME = 'nfv_tosca_translator'
 
 
-def translate(template_file, validate_only):
+def translate(template_file, validate_only, log_level='info'):
+    log_map = dict(
+        debug=logging.DEBUG,
+        info=logging.INFO,
+        warning=logging.WARNING,
+        error=logging.ERROR,
+        critical=logging.ERROR
+    )
+
+    logging_format = "%(asctime)s %(levelname)s %(message)s"
+    logging.basicConfig(filename=os.path.join(utils.get_project_root_path() + "/", 'nfv_tosca_translator.log'),
+                        filemode='a', level=log_map[log_level],
+                        format=logging_format, datefmt='%Y-%m-%d %H:%M:%S')
     with open(template_file, "r") as f:
         try:
             tpl = yaml.load(f, Loader=yaml.SafeLoader)
         except yaml.scanner.ScannerError as e:
-            logging.error("Error parsing TOSCA template: %s %s" % (e.problem, e.context_mark))
+            logging.error("Error parsing TOSCA template: %s %s." % (e.problem, e.context_mark))
             sys.exit(1)
     tosca_def = utils.get_project_root_path() + TOSCA_DEF_PATH
     nfv_def = utils.get_project_root_path() + NFV_DEF_PATH
@@ -27,7 +41,7 @@ def translate(template_file, validate_only):
             tpl['imports'].append(tosca_def)
             tpl['imports'].append(nfv_def)
         else:
-            logging.error("Error parsing imports in TOSCA template")
+            logging.error("Error parsing imports in TOSCA template.")
             sys.exit(1)
     else:
         tpl['imports'] = []
@@ -37,11 +51,11 @@ def translate(template_file, validate_only):
     try:
         tosca_parser_tpl = ToscaTemplate(yaml_dict_tpl=tpl)
     except:
-        logging.exception("Got exception from OpenStack tosca-parser")
+        logging.exception("Got exception from OpenStack tosca-parser.")
         sys.exit(1)
 
     if validate_only:
-        logging.info("Template successfully passed validation")
+        logging.info("Template successfully passed validation.")
         tpl = {"template successfully passed validation": template_file}
         return tpl, {}
 
@@ -50,12 +64,12 @@ def translate(template_file, validate_only):
         try:
             mapping = yaml.load(f, Loader=yaml.SafeLoader)
         except yaml.scanner.ScannerError as e:
-            logging.error("Error parsing NFV mapping: %s %s" % (e.problem, e.context_mark))
+            logging.error("Error parsing NFV mapping: %s %s." % (e.problem, e.context_mark))
             sys.exit(1)
 
     try:
         tosca_normative_tpl = ToscaNormativeTemplate(tosca_parser_tpl=tosca_parser_tpl, yaml_dict_mapping=mapping)
     except:
-        logging.exception("Got exception on translating NFV to TOSCA")
+        logging.exception("Got exception on translating NFV to TOSCA.")
         sys.exit(1)
     return tosca_normative_tpl.get_result()
