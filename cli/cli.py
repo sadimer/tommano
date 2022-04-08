@@ -10,7 +10,7 @@ TOPOLOGY_TPL_NAME = '/topology.yaml'
 
 class TranslatorCli(object):
     """
-    Класс запуска трансляции
+    Класс запуска трансляции из командной строки
     Вход: массив argv
     Атрибуты:
     self.template_file - путь к файлу с исходным шаблном в нотации TOSCA NFV
