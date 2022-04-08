@@ -4,7 +4,6 @@ import ipaddress
 import yaml
 import logging
 import sys
-import os
 
 DEF_PATH = '/definitions/'
 TRANS_PATH = '/translator/'
@@ -13,6 +12,56 @@ from toscaparser.functions import GetProperty
 
 
 class ToscaNormativeTemplate(object):
+    """
+        Класс транслятора
+        Вход:
+        1) tosca_parser_tpl - тип который вернул tosca-parser
+        2) yaml_dict_mapping - yaml dict маппинга TOSCA_NFV_mapping.yaml
+        Атрибуты:
+        self.definitions - yaml dict определений типов NFV и нормативной TOCSA
+        self.node_templates - шаблоны узлов в данной топологии
+        self.relationship_templates - шаблоны отношений в данной топологии
+        self.version - версия TOSCA
+        self.mapping - yaml dict маппинга TOSCA_NFV_mapping.yaml
+        self.generated_scripts - dict of lists строк ansible скриптов для настройки compute узлов
+        self.num_addresses - dict в ктором лежит таблица соответствия адресов и compute узлов в формате {host:[address1, address2]}
+        self.result_template - итоговой нормативный шаблон TOSCA
+        self.new_element_templates - промежуточный dict для обработки сгенерированных шаблонов
+        Методы:
+        get_result - возвращает результат обработки: result_template и generated_scripts
+        expand_mapping - расширяет маппинг типов: для каждого типа A derived from B применяются правила из маппинга для
+        обоих типов с приоритетеом у правил типа А
+        translate_specific_types - обрабатывает ip адреса (генерирует, если они не указаны), объединяет скрипты
+        конфигцрации VNF в один
+        resolve_get_property_functions - подставляет вместо get_property значения на которые данные функции ссылаются
+        get_property_value - достает значение некоторого property
+        translate_to_tosca - основной метод трансляции шаблона с NFV типами в полностью норматиный TOSCA шаблон
+        Принцип работы:
+        1) достаем все определения из шаблонных файлов NFV_definition_1_0.yaml и TOSCA_definition_1_0.yaml
+        2) расширяем определения в маппинге которые derived from
+        3) объдеиняем шаблоны узлов и отношений в один dict
+        4) подставляем вместо get_property значения на которые данные функции ссылаются
+        5) запускаем процесс трансляции в нормативный TOSCA шаблон:
+            5.1  проходимся по всему dict сущностей, используя правила из маппинга создаем новые dict шаблоны, отельно
+            отмечу правила для requirements: check - проверить существование требуемого узла, not change - добавить
+            указанные в правиле атрибуты к требуемому узлу, но не менять его имя, change - добавить
+            указанные в правиле атрибуты к требуемому узлу и заменить его имя на имя текущего узла
+            5.2  данные шаблоны обрабатываем методом translate_specific_types, в них происходит рандомная генерация
+            ip адресов, адресов и имени сети/подсети (согласно стандарту NFV они не указываются), определяется
+            соответствие ip адресов и compute узлов, так же в них созданные шаблоны compute в которых из параметров
+            указаны лишь скрипты для настройки (полученные после трансляции VNFD типов) обьединяются с шаблонами compute
+            тех vdu, на которых базируются данные VNF, скрипт настройки обновляется путем дописывания в него скрипта
+            который был закреплен за той или иной VNF
+            5.3  обьединяем полученные шаблоны в полноценные шаблоны нормативных типов TOSCA и сохраняем в
+            new_element_templates
+        6) для всех имен из new_element_templates удаляем старые узлы (называния узлов сохрняются, но типы c namespace
+        nfv должны удаляться), и узлы при обработке requirements которых было указано их заменить (дополнив при этом
+        какие то другие узлы)
+        7) для всех полученных compute узлов определяем соответствие с их конфигурационными файлами и дописыаем их в
+        interfaces: Standard: configure
+        8) составляем полный шаблон tosca
+        9) при использовании метода get_result - возвращаем результат работы
+    """
     def __init__(self, tosca_parser_tpl, yaml_dict_mapping):
         topology_template = tosca_parser_tpl.topology_template
         self.definitions = topology_template.custom_defs
@@ -25,8 +74,10 @@ class ToscaNormativeTemplate(object):
             self.relationship_templates[tmpl.name] = tmpl.entity_tpl
         self.node_templates = self.resolve_get_property_functions(self.node_templates)
         self.relationship_templates = self.resolve_get_property_functions(self.relationship_templates)
+        logging.info("Successfully resolved get_property functions in TOSCA NFV template.")
         self.mapping = yaml_dict_mapping
         self.expand_mapping()
+        logging.info("Successfully expand types in mapping.")
         self.generated_scripts = {}
         self.num_addresses = {}
         self.translate_to_tosca()
@@ -44,7 +95,6 @@ class ToscaNormativeTemplate(object):
                                                            self.mapping[self.definitions[key]['derived_from']])
                 key = self.definitions[key]['derived_from']
 
-    # типы которых нет в nfv, но они нужны для развертывания
     def translate_specific_types(self, tmp_template, tmpl_name):
         if tmp_template != {}:
             if tmp_template[tmpl_name]['type'] == 'tosca.nodes.Compute':
@@ -56,6 +106,9 @@ class ToscaNormativeTemplate(object):
                     elif not isinstance(tmp_template[tmpl_name]['interfaces']['Standard']['configure'], dict):
                         def_file = utils.get_project_root_path() + DEF_PATH + \
                                    tmp_template[tmpl_name]['interfaces']['Standard']['configure']
+                    else:
+                        logging.error("Error! Unknown type of 'configure'.")
+                        sys.exit(1)
                     try:
                         with open(def_file, "r+") as f:
                             vnf_def = f.readlines()
@@ -71,18 +124,16 @@ class ToscaNormativeTemplate(object):
                             else:
                                 self.generated_scripts[script] += vnf_def
                         else:
-                            logging.error("Error! VNFD hasnt meta, plase check mapping for VNFD.")
+                            logging.error("Error! VNFD hasn't meta, please check mapping for VNFD.")
                             sys.exit(1)
 
             if tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Port':
                 if 'properties' not in tmp_template[tmpl_name] or 'ip_address' not in tmp_template[tmpl_name][
                     'properties']:
-                    # проверь всегда ли VL к этому моменту будет сощдана (если нет будет ошибка по requirements)
                     if 'properties' not in tmp_template[tmpl_name]:
                         tmp_template[tmpl_name]['properties'] = {}
                     if 'requirements' in tmp_template[tmpl_name]:
                         flag = False
-                        # адрес в vnf вещь необязательная, изголяемся как хотим
                         for elem in tmp_template[tmpl_name]['requirements']:
                             if 'link' in elem:
                                 start = int(ipaddress.IPv4Address(
@@ -97,7 +148,6 @@ class ToscaNormativeTemplate(object):
                             logging.error("Error! No link requirement.")
                             sys.exit(1)
                 else:
-                    # не самое удачное решение, но работает
                     if 'requirements' in tmp_template[tmpl_name]:
                         address = tmp_template[tmpl_name]['properties']['ip_address']
                         ext = False
@@ -201,7 +251,7 @@ class ToscaNormativeTemplate(object):
             for req in node_tmpl['requirements']:
                 if req.get(value[1], None) is not None:
                     if req[value[1]].get('node', None) is not None:
-                        return self._get_property_value([req[value[1]]['node']] + value[2:], req[value[1]]['node'])
+                        return self.get_property_value([req[value[1]]['node']] + value[2:], req[value[1]]['node'])
                     if req[value[1]].get('node_filter', None) is not None:
                         tmpl_properties = {}
                         node_filter_props = req[value[1]]['node_filter'].get('properties', [])
@@ -231,8 +281,7 @@ class ToscaNormativeTemplate(object):
         additional_keys = []
         new_additional_keys = []
         element_templates = copy.copy(self.node_templates)
-        # тут пока хз че делать
-        # element_templates.update(copy.copy(self.relationship_templates))
+        element_templates.update(copy.copy(self.relationship_templates))
         for tmpl_name, element in element_templates.items():
             (namespace, element_type, element_name) = utils.tosca_type_parse(element['type'])
             if namespace == 'nfv':
@@ -294,7 +343,6 @@ class ToscaNormativeTemplate(object):
                                                             elem['parameter'], iter)
                                             if 'type' in elem:
                                                 if tmpl_name in tmp_template:
-                                                    # ПЕРВЫЙ ТАЙП ВСТРЕТИВШИЙСЯ В ШАБЛОНЕ БУДТ ЗАПИСАН - НЕ ЕСТЬ ХОРОШО, ПОТОМ ПЕРЕДЕЛАТЬ
                                                     if 'type' not in tmp_template[tmpl_name]:
                                                         tmp_template[tmpl_name] = utils.deep_update_dict(
                                                             tmp_template[tmpl_name],
@@ -331,10 +379,12 @@ class ToscaNormativeTemplate(object):
                                                     else:
                                                         logging.error("Error! The requirement is not defined.")
                                                         sys.exit(1)
-
+                                                else:
+                                                    logging.warning("Unknown node_name parameter.")
                         self.new_element_templates = utils.deep_update_dict(self.new_element_templates,
                                                                             self.translate_specific_types(tmp_template,
                                                                                                           tmpl_name))
+                        logging.info("Successfully parsed {} node.".format(tmpl_name))
         for key in self.new_element_templates:
             if key in element_templates:
                 element_templates.pop(key)
@@ -344,15 +394,20 @@ class ToscaNormativeTemplate(object):
         for key in new_additional_keys:
             if key in self.new_element_templates:
                 self.new_element_templates.pop(key)
-        # оч смахивает на костыль, но пока ничего другого не придумал вообще((((((((
+        logging.info("Successfully delete unused nodes.")
         for key, value in self.new_element_templates.items():
             script = "configure_" + key + ".yaml"
             if 'interfaces' in value and 'Standard' in value['interfaces'] and 'configure' in value['interfaces'][
                 'Standard']:
                 if 'implementation' in value['interfaces']['Standard']['configure']:
                     self.new_element_templates[key]['interfaces']['Standard']['configure']['implementation'] = script
+                    logging.info("Successfully added {} script to {}.".format(script, key))
                 elif not isinstance(value['interfaces']['Standard']['configure'], dict):
                     self.new_element_templates[key]['interfaces']['Standard']['configure'] = script
+                    logging.info("Successfully added {} script to {}.".format(script, key))
+                else:
+                    logging.error("Error! Unknown type of 'configure'.")
+                    sys.exit(1)
         element_templates = utils.deep_update_dict(element_templates, self.new_element_templates)
         self.result_template['tosca_definitions_version'] = self.version
         self.result_template['topology_template'] = {}

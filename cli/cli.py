@@ -9,6 +9,21 @@ TOPOLOGY_TPL_NAME = '/topology.yaml'
 
 
 class TranslatorCli(object):
+    """
+    Класс запуска трансляции
+    Вход: массив argv
+    Атрибуты:
+    self.template_file - путь к файлу с исходным шаблном в нотации TOSCA NFV
+    self.output_dir - путь к директории в которой будет лежать итоговый шаблон topology.yaml и скрипты ansible
+    self.validate_only - true, если нужно только валидировать шаблон
+    self.output_dict - yaml dict итогового шаблона
+    self.generated_scripts - dict of lists строк ansible скриптов для настройки compute узлов
+    self.log_level - уровень логирования nfv_tosca_translator.log
+    Принцип работы:
+    1) парсим аргументы командной строки
+    2) вызываем функцию translate для преобразования шаблона
+    3) получаем yaml шаблон и ansible скрипты и записываем результат в файлы
+    """
     def __init__(self, argv):
         parser = self.get_parser()
         (args, args_list) = parser.parse_known_args(argv)
@@ -17,16 +32,17 @@ class TranslatorCli(object):
         if self.output_dir and not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self.validate_only = args.validate_only
-        self.output_file, self.generated_scripts = translate(self.template_file, self.validate_only)
+        self.log_level = args.log_level
+        self.output_dict, self.generated_scripts = translate(self.template_file, self.validate_only, self.log_level)
         if self.output_dir:
             with open(self.output_dir + TOPOLOGY_TPL_NAME, "w+") as f:
-                yaml.dump(self.output_file, f)
+                yaml.dump(self.output_dict, f)
             for key, script in self.generated_scripts.items():
                 with open(self.output_dir + '/' + key, "w+") as ouf:
                     for line in script:
                         print(line, file=ouf, end='')
         else:
-            print(yaml.dump(self.output_file))
+            print(yaml.dump(self.output_dict))
             for key, script in self.generated_scripts.items():
                 print("\n" + key + ":")
                 for line in script:
@@ -46,6 +62,10 @@ class TranslatorCli(object):
                             metavar='<dirname>',
                             required=False,
                             help='Output dir for TOSCA normative template and configure scripts')
+        parser.add_argument('--log-level',
+                            default='info',
+                            choices=['debug', 'info', 'warning', 'error', 'critical'],
+                            help='Set log level for tool')
         return parser
 
 
