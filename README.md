@@ -40,12 +40,12 @@ nfv_tosca_translator --template-file examples/demo_nfv_example.yaml --validate-o
 ```
 2. Сгенерируйте нормативный шаблон топологии:
 ```
-nfv_tosca_translator --template-file examples/demo_nfv_example.yaml --output-dir results
+nfv_tosca_translator --template-file examples/demo_nfv_example.yaml --output-dir results --orchestrator=clouni
 ```
 3. Далее в указанной папке появится файл topology.yaml, его необходимо передать на вход tosca оркестратору:
 ```
 cd results
-clouni --template-file topology.yaml --cluster-name example --provider openstack --output-file ansible_create.yaml
+clouni --template-file topology.yaml --cluster-name example --provider openstack --configuration-tool ansible --output-file ansible_create.yaml --extra ignore_errors=true
 ```
 4. Разворачиваем шаблон топологии в облаке на базе openstack при помощи ansible:
 ```
