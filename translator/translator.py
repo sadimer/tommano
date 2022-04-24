@@ -15,7 +15,7 @@ MAP_PATH = '/definitions/TOSCA_NFV_mapping.yaml'
 PROJECT_NAME = 'nfv_tosca_translator'
 
 
-def translate(template_file, validate_only, log_level='info'):
+def translate(template_file, validate_only, orchestrator, log_level='info'):
     """
         Функция трансляции шаблонов TOSCA NFV в TOSCA NORMATIVE
         Вход:
@@ -91,7 +91,8 @@ def translate(template_file, validate_only, log_level='info'):
             sys.exit(1)
 
     try:
-        tosca_normative_tpl = ToscaNormativeTemplate(tosca_parser_tpl=tosca_parser_tpl, yaml_dict_mapping=mapping)
+        tosca_normative_tpl = ToscaNormativeTemplate(tosca_parser_tpl=tosca_parser_tpl, yaml_dict_mapping=mapping,
+                                                     orchestrator=orchestrator)
         logging.info("Template successfully passed translation to normative TOSCA.")
     except:
         logging.exception("Got exception on translating NFV to TOSCA.")

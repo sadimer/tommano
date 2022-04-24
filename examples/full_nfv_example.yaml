@@ -25,7 +25,7 @@ topology_template:
             checksum: some checksum
             minDisk: 20 GiB
             size: 2.55 GiB
-            operatingSystem: cumulus_vx
+            operatingSystem: cumulus
             swImage: some url
             diskFormat: qcow2
             containerFormat: BARE
@@ -35,7 +35,7 @@ topology_template:
           checksum: some checksum
           minDisk: 20 GiB
           size: 2.55 GiB
-          operatingSystem: cumulus_vx
+          operatingSystem: cumulus
           swImage: some url
           diskFormat: qcow2
           containerFormat: BARE
@@ -63,7 +63,7 @@ topology_template:
             checksum: some checksum
             minDisk: 20 GiB
             size: 2.55 GiB
-            operatingSystem: cumulus_vx
+            operatingSystem: cumulus
             swImage: some url
             diskFormat: qcow2
             containerFormat: BARE
@@ -73,7 +73,7 @@ topology_template:
           checksum: some checksum
           minDisk: 20 GiB
           size: 2.55 GiB
-          operatingSystem: cumulus_vx
+          operatingSystem: cumulus
           swImage: some url
           diskFormat: qcow2
           containerFormat: BARE

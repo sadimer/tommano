@@ -11,19 +11,19 @@ topology_template:
           virtualComputeDescId: vc_0
           virtualCpu:
             numVirtualCpu: 1
-            cpuArchitecture: x86
+            cpuArchitecture: x86_64
           virtualMemory:
-            virtualMemSize: 1024 MiB
+            virtualMemSize: 2048 MiB
         virtualStorageDesc:
           id: sd_0
           typeOfStorage: object
           sizeOfStorage: 50 GiB
         swImageDesc:
           id: sw_0
-          version: v4.1
+          version: '4.1'
           minDisk: 20 GiB
           size: 2.55 GiB
-          operatingSystem: cumulus_vx
+          operatingSystem: cumulus
           diskFormat: qcow2
           containerFormat: BARE
           
@@ -38,7 +38,7 @@ topology_template:
         cidrData:
           networkName: my_net
           cidr: 192.168.2.0/24
-          startIp: 192.168.2.10
+          startIp: 192.168.2.2
           endIp: 192.168.2.100
           gatewayIp: 192.168.2.1
           networkType: geneve  
@@ -77,7 +77,7 @@ topology_template:
           addressType: IP
           l3AddressData:
             iPAddressAssignment: true
-            iPAddress: 10.100.160.42
+            iPAddress: 10.100.156.42
             floatingIpActivated: false
             iPAddressType: IPV4
             numberOfIpAddress: 1
@@ -98,8 +98,8 @@ topology_template:
             interfaceName: swp1
             gateway: { get_property: [ internal_vl, cidrData, gatewayIp ] }
             internalNetCidr: { get_property: [ internal_vl, cidrData, cidr ] }
-            rangeStart: 192.168.2.30 192.168.2.200
-            rangeEnd: 192.168.2.100
+            rangeStart: 192.168.2.30
+            rangeEnd: 192.168.2.200
             staticHosts:
               host1: { get_property: [ port_0, ip_address ] }
               host2: { get_property: [ port_1, ip_address ] }
@@ -120,61 +120,61 @@ topology_template:
               - typeNat: static
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
-                destAddrPr: 10.100.160.10/24
+                destAddrPr: 10.100.156.10/22
                 protocol: tcp
               - typeNat: static
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
-                destAddrPr: 10.100.160.10/24
+                destAddrPr: 10.100.156.10/22
                 protocol: udp
               - typeNat: static
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
-                destAddrPr: 10.100.160.10/24
+                destAddrPr: 10.100.156.10/22
                 protocol: icmp
               - typeNat: static
                 routingType: dnat
-                sourceAddrPr: 10.100.160.10/24
+                sourceAddrPr: 10.100.156.10/22
                 destAddrPr: 192.168.2.10/24
                 protocol: udp
               - typeNat: static
                 routingType: dnat
-                sourceAddrPr: 10.100.160.10/24
+                sourceAddrPr: 10.100.156.10/22
                 destAddrPr: 192.168.2.10/24
                 protocol: tcp
               - typeNat: static
                 routingType: dnat
-                sourceAddrPr: 10.100.160.10/24
+                sourceAddrPr: 10.100.156.10/22
                 destAddrPr: 192.168.2.10/24
                 protocol: icmp
               - typeNat: static
                 routingType: snat
                 sourceAddrPr: 192.168.2.11/24
-                destAddrPr: 10.100.160.11/24
+                destAddrPr: 10.100.156.11/22
                 protocol: tcp
               - typeNat: static
                 routingType: snat
                 sourceAddrPr: 192.168.2.11/24
-                destAddrPr: 10.100.160.11/24
+                destAddrPr: 10.100.156.11/22
                 protocol: udp
               - typeNat: static
                 routingType: snat
                 sourceAddrPr: 192.168.2.11/24
-                destAddrPr: 10.100.160.11/24
+                destAddrPr: 10.100.156.11/22
                 protocol: icmp
               - typeNat: static
                 routingType: dnat
-                sourceAddrPr: 10.100.160.11/24
+                sourceAddrPr: 10.100.156.11/22
                 destAddrPr: 192.168.2.11/24
                 protocol: udp
               - typeNat: static
                 routingType: dnat
-                sourceAddrPr: 10.100.160.11/24
+                sourceAddrPr: 10.100.156.11/22
                 destAddrPr: 192.168.2.11/24
                 protocol: tcp
               - typeNat: static
                 routingType: dnat
-                sourceAddrPr: 10.100.160.11/24
+                sourceAddrPr: 10.100.156.11/22
                 destAddrPr: 192.168.2.11/24
                 protocol: icmp
       requirements:
@@ -274,7 +274,7 @@ topology_template:
             files: 1
             pathToPcap: /tmp/dump.pcap
             interfaceName: eth0
-            captureFilter: icmp && host 10.100.160.10
+            captureFilter: icmp && host 10.100.156.10
       requirements:
        - vnfExtCpd: ext_gateway_cpd
        - vdu: router_vdu
@@ -295,7 +295,7 @@ topology_template:
         
     custom_server_0:
       type: tosca.nodes.Compute
-      attributes:
+      properties:
         ports:
           internal:
             addresses:
@@ -313,7 +313,7 @@ topology_template:
             
     custom_server_1:
       type: tosca.nodes.Compute
-      attributes:
+      properties:
         ports:
           internal:
             addresses:

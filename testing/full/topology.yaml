@@ -17,7 +17,7 @@ topology_template:
         os:
           properties:
             architecture: x86
-            type: cumulus_vx
+            type: cumulus
             version: v4.1
       interfaces:
         Standard:
@@ -81,7 +81,7 @@ topology_template:
               Tshark_analyze_interfaceName: swp1
               Tshark_analyze_pathToPcap: /tmp/dump.pcap
               iPAddressDict:
-                1:
+                '1':
                   192.168.2.11: 192.168.2.0/24
       properties:
         meta: my_vdu
@@ -117,7 +117,7 @@ topology_template:
         os:
           properties:
             architecture: x86
-            type: cumulus_vx
+            type: cumulus
             version: v4.1
       interfaces:
         Standard:
@@ -133,7 +133,7 @@ topology_template:
               - destAddr: 0.0.0.0
                 sourceAddr: 0.0.0.0
               iPAddressDict:
-                1:
+                '1':
                   192.168.2.12: 192.168.2.0/24
       properties:
         meta: new_vdu

@@ -12,17 +12,17 @@ class TestTranslate(unittest.TestCase):
     os.chdir(utils.get_project_root_path())
 
     def test_validate_small_tpl(self):
-        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", True)
+        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", True, 'nfv')
         self.assertEqual(generated_scripts, {})
         self.assertEqual(output_tpl, {"template successfully passed validation": "examples/small_nfv_example.yaml"})
 
     def test_validate_full_tpl(self):
-        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", True)
+        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", True, 'nfv')
         self.assertEqual(generated_scripts, {})
         self.assertEqual(output_tpl, {"template successfully passed validation": "examples/full_nfv_example.yaml"})
 
     def test_small_tpl(self):
-        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", False)
+        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", False, 'nfv')
         with open("testing/small/topology.yaml", "r") as tpl_file:
             data = yaml.load(tpl_file, Loader=SafeLoader)
         self.assertIsNotNone(output_tpl)
@@ -111,7 +111,7 @@ class TestTranslate(unittest.TestCase):
             self.assertEqual(value, data)
 
     def test_full_tpl(self):
-        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", False)
+        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", False, 'nfv')
         with open("testing/full/topology.yaml", "r") as tpl_file:
             data = yaml.load(tpl_file, Loader=SafeLoader)
         self.assertIsNotNone(output_tpl)

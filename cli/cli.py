@@ -29,11 +29,12 @@ class TranslatorCli(object):
         (args, args_list) = parser.parse_known_args(argv)
         self.template_file = os.getcwd() + '/' + args.template_file
         self.output_dir = args.output_dir
+        self.orchestrator = args.orchestrator
         if self.output_dir and not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self.validate_only = args.validate_only
         self.log_level = args.log_level
-        self.output_dict, self.generated_scripts = translate(self.template_file, self.validate_only, self.log_level)
+        self.output_dict, self.generated_scripts = translate(self.template_file, self.validate_only, self.orchestrator, self.log_level)
         if self.output_dir:
             with open(self.output_dir + TOPOLOGY_TPL_NAME, "w+") as f:
                 yaml.dump(self.output_dict, f)
@@ -66,6 +67,10 @@ class TranslatorCli(object):
                             default='info',
                             choices=['debug', 'info', 'warning', 'error', 'critical'],
                             help='Set log level for tool')
+        parser.add_argument('--orchestrator',
+                            default='nfv',
+                            choices=['nfv', 'clouni'],
+                            help='Translate to template supported by specific orchestrator')
         return parser
 
 

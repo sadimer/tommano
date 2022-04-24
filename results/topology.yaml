@@ -1,11 +1,6 @@
 topology_template:
   node_templates:
     custom_server_0:
-      attributes:
-        ports:
-          internal:
-            addresses:
-            - 192.168.2.10
       capabilities:
         host:
           properties:
@@ -16,13 +11,12 @@ topology_template:
           properties:
             architecture: x86_64
             type: cirros
+      properties:
+        ports:
+          internal:
+            port_name: 192.168.2.10
       type: tosca.nodes.Compute
     custom_server_1:
-      attributes:
-        ports:
-          internal:
-            addresses:
-            - 192.168.2.11
       capabilities:
         host:
           properties:
@@ -33,19 +27,16 @@ topology_template:
           properties:
             architecture: x86_64
             type: cirros
+      properties:
+        ports:
+          internal:
+            port_name: 192.168.2.11
       type: tosca.nodes.Compute
     ext_gateway_cpd:
       properties:
         ip_address: 192.168.2.1
       requirements:
-      - binding: router_vdu
       - link: internal_vl
-      type: tosca.nodes.network.Port
-    external_cpd:
-      properties:
-        ip_address: 10.100.160.42
-      requirements:
-      - binding: router_vdu
       type: tosca.nodes.network.Port
     internal_vl:
       properties:
@@ -55,7 +46,7 @@ topology_template:
         ip_version: '4'
         network_name: my_net
         network_type: geneve
-        start_ip: 192.168.2.10
+        start_ip: 192.168.2.2
       type: tosca.nodes.network.Network
     port_0:
       properties:
@@ -74,16 +65,24 @@ topology_template:
         host:
           properties:
             disk_size: 50 GiB
-            mem_size: 1024 MiB
+            mem_size: 2048 MiB
             num_cpus: 1
         os:
           properties:
-            architecture: x86
-            type: cumulus_vx
-            version: v4.1
+            architecture: x86_64
+            type: cumulus
+            version: '4.1'
+      properties:
+        ports:
+          external:
+            port_name: 10.100.156.42
+          internal:
+            port_name: 192.168.2.1
+      type: tosca.nodes.Compute
+    software_for_router_vdu:
       interfaces:
         Standard:
-          configure:
+          create:
             implementation: configure_router_vdu.yaml
             inputs:
               DHCP_defaultLeaseTime: 600
@@ -91,8 +90,8 @@ topology_template:
               DHCP_interfaceName: swp1
               DHCP_internalNetCidr: 192.168.2.0/24
               DHCP_maxLeaseTime: 7200
-              DHCP_rangeEnd: 192.168.2.100
-              DHCP_rangeStart: 192.168.2.30 192.168.2.200
+              DHCP_rangeEnd: 192.168.2.200
+              DHCP_rangeStart: 192.168.2.30
               DHCP_staticHosts:
                 host1: 192.168.2.10
                 host2: 192.168.2.11
@@ -112,17 +111,17 @@ topology_template:
                 deepProtocol: wikipedia
                 routingPath: FORWARD
               Nat_rules:
-              - destAddrPr: 10.100.160.10/24
+              - destAddrPr: 10.100.156.10/22
                 protocol: tcp
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
                 typeNat: static
-              - destAddrPr: 10.100.160.10/24
+              - destAddrPr: 10.100.156.10/22
                 protocol: udp
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
                 typeNat: static
-              - destAddrPr: 10.100.160.10/24
+              - destAddrPr: 10.100.156.10/22
                 protocol: icmp
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
@@ -130,17 +129,47 @@ topology_template:
               - destAddrPr: 192.168.2.10/24
                 protocol: udp
                 routingType: dnat
-                sourceAddrPr: 10.100.160.10/24
+                sourceAddrPr: 10.100.156.10/22
                 typeNat: static
               - destAddrPr: 192.168.2.10/24
                 protocol: tcp
                 routingType: dnat
-                sourceAddrPr: 10.100.160.10/24
+                sourceAddrPr: 10.100.156.10/22
                 typeNat: static
               - destAddrPr: 192.168.2.10/24
                 protocol: icmp
                 routingType: dnat
-                sourceAddrPr: 10.100.160.10/24
+                sourceAddrPr: 10.100.156.10/22
+                typeNat: static
+              - destAddrPr: 10.100.156.11/22
+                protocol: tcp
+                routingType: snat
+                sourceAddrPr: 192.168.2.11/24
+                typeNat: static
+              - destAddrPr: 10.100.156.11/22
+                protocol: udp
+                routingType: snat
+                sourceAddrPr: 192.168.2.11/24
+                typeNat: static
+              - destAddrPr: 10.100.156.11/22
+                protocol: icmp
+                routingType: snat
+                sourceAddrPr: 192.168.2.11/24
+                typeNat: static
+              - destAddrPr: 192.168.2.11/24
+                protocol: udp
+                routingType: dnat
+                sourceAddrPr: 10.100.156.11/22
+                typeNat: static
+              - destAddrPr: 192.168.2.11/24
+                protocol: tcp
+                routingType: dnat
+                sourceAddrPr: 10.100.156.11/22
+                typeNat: static
+              - destAddrPr: 192.168.2.11/24
+                protocol: icmp
+                routingType: dnat
+                sourceAddrPr: 10.100.156.11/22
                 typeNat: static
               Ntop_analyze_endpointPort: 3000
               Ntop_analyze_interfacesNames:
@@ -155,22 +184,15 @@ topology_template:
               Routing_rules:
               - destAddr: 192.168.2.10
               - destAddr: 192.168.2.11
-              Tshark_analyze_captureFilter: icmp && host 10.100.160.10
+              Tshark_analyze_captureFilter: icmp && host 10.100.156.10
               Tshark_analyze_duration: 10000
               Tshark_analyze_files: 1
               Tshark_analyze_interfaceName: eth0
               Tshark_analyze_pathToPcap: /tmp/dump.pcap
               iPAddressDict:
-                1:
+                '1':
                   192.168.2.1: 192.168.2.0/24
-      properties:
-        meta: router_vdu
-        ports:
-          external:
-            addresses:
-            - 10.100.160.42
-          internal:
-            addresses:
-            - 192.168.2.1
-      type: tosca.nodes.Compute
+      requirements:
+      - host: router_vdu
+      type: tosca.nodes.SoftwareComponent
 tosca_definitions_version: tosca_simple_yaml_1_0

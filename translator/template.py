@@ -62,7 +62,9 @@ class ToscaNormativeTemplate(object):
         8) составляем полный шаблон tosca
         9) при использовании метода get_result - возвращаем результат работы
     """
-    def __init__(self, tosca_parser_tpl, yaml_dict_mapping):
+
+    def __init__(self, tosca_parser_tpl, yaml_dict_mapping, orchestrator):
+        self.orchestrator = orchestrator
         topology_template = tosca_parser_tpl.topology_template
         self.definitions = topology_template.custom_defs
         self.node_templates = {}
@@ -184,7 +186,8 @@ class ToscaNormativeTemplate(object):
                                         self.new_element_templates[elem['binding']], {'interfaces': {'Standard': {
                                             'configure': {'inputs': {
                                                 'iPAddressDict': {
-                                                    len(self.num_addresses[elem['binding']]): {address: cidr}}}}}}})
+                                                    str(len(self.num_addresses[elem['binding']])): {
+                                                        address: cidr}}}}}}})
                                 break
             elif tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Network':
                 net_name = 'net' + str(utils.get_random_int(0, 1024))
@@ -409,6 +412,43 @@ class ToscaNormativeTemplate(object):
                     logging.error("Error! Unknown type of 'configure'.")
                     sys.exit(1)
         element_templates = utils.deep_update_dict(element_templates, self.new_element_templates)
+        # ЭТО ТУТ ВРЕМЕННО, мне просто хочется потестить, потом будут отдельные маппинги для всех оркестраторов
+        if self.orchestrator == 'clouni':
+            self.new_element_templates = {}
+            pop_keys = []
+            for key, value in element_templates.items():
+                if 'interfaces' in value and 'Standard' in value['interfaces'] and 'configure' in value['interfaces'][
+                    'Standard']:
+                    self.new_element_templates['software_for_' + key] = {'interfaces': {'Standard': {'create': {}}},
+                                                                         'requirements': [{'host': key}],
+                                                                         'type': 'tosca.nodes.SoftwareComponent'}
+                    self.new_element_templates['software_for_' + key]['interfaces'][
+                        'Standard']['create'] = value['interfaces'][
+                        'Standard']['configure']
+                    value.pop('interfaces')
+                if 'type' in value and value['type'] == 'tosca.nodes.Compute':
+                    if 'properties' in value and 'ports' in value['properties']:
+                        for k, v in value['properties']['ports'].items():
+                            if 'addresses' in v:
+                                v['port_name'] = v['addresses'][0]
+                                v.pop('addresses')
+                    if 'properties' in value and 'meta' in value['properties']:
+                        value['properties'].pop('meta')
+                if 'type' in value and value['type'] == 'tosca.nodes.network.Port':
+                    if 'requirements' in value:
+                        flag = False
+                        for req in value['requirements']:
+                            if 'link' in req:
+                                flag = True
+                                break
+                        if not flag:
+                            pop_keys += [key]
+                        for req in value['requirements']:
+                            if 'binding' in req:
+                                value['requirements'].remove(req)
+            for key in pop_keys:
+                element_templates.pop(key)
+            element_templates = utils.deep_update_dict(element_templates, self.new_element_templates)
         self.result_template['tosca_definitions_version'] = self.version
         self.result_template['topology_template'] = {}
         self.result_template['topology_template']['node_templates'] = element_templates

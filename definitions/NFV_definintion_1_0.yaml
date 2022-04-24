@@ -246,7 +246,7 @@ data_types:
         required: false
       operatingSystem:
         type: string
-        default: cumulus_vx
+        default: cumulus
       swImage:
         type: string
         required: false
