@@ -11,11 +11,11 @@ from translator.template import ToscaNormativeTemplate
 VNF_DEF_PATH = '/definitions/VNF_types/'
 NFV_DEF_PATH = '/definitions/NFV_definintion_1_0.yaml'
 TOSCA_DEF_PATH = '/definitions/TOSCA_definition_1_0.yaml'
-MAP_PATH = '/definitions/TOSCA_NFV_mapping_clouni.yaml'
+MAP_PATH = '/definitions/TOSCA_NFV_mapping'
 PROJECT_NAME = 'nfv_tosca_translator'
 
 
-def translate(template_file, validate_only, orchestrator, log_level='info'):
+def translate(template_file, validate_only, orchestrator, provider, log_level='info'):
     """
         Функция трансляции шаблонов TOSCA NFV в TOSCA NORMATIVE
         Вход:
@@ -42,7 +42,7 @@ def translate(template_file, validate_only, orchestrator, log_level='info'):
         error=logging.ERROR,
         critical=logging.ERROR
     )
-
+    MAP_PATH = '/definitions/TOSCA_NFV_mapping_' + orchestrator + '.yaml'
     logging_format = "%(asctime)s %(levelname)s %(message)s"
     logging.basicConfig(filename=os.path.join(utils.get_project_root_path() + "/", 'nfv_tosca_translator.log'),
                         filemode='a', level=log_map[log_level],
@@ -92,7 +92,7 @@ def translate(template_file, validate_only, orchestrator, log_level='info'):
 
     try:
         tosca_normative_tpl = ToscaNormativeTemplate(tosca_parser_tpl=tosca_parser_tpl, yaml_dict_mapping=mapping,
-                                                     orchestrator=orchestrator)
+                                                     orchestrator=orchestrator, provider=provider)
         logging.info("Template successfully passed translation to normative TOSCA.")
     except:
         logging.exception("Got exception on translating NFV to TOSCA.")

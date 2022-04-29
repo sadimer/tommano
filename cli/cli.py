@@ -30,11 +30,12 @@ class TranslatorCli(object):
         self.template_file = os.getcwd() + '/' + args.template_file
         self.output_dir = args.output_dir
         self.orchestrator = args.orchestrator
+        self.provider = args.provider
         if self.output_dir and not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self.validate_only = args.validate_only
         self.log_level = args.log_level
-        self.output_dict, self.generated_scripts = translate(self.template_file, self.validate_only, self.orchestrator, self.log_level)
+        self.output_dict, self.generated_scripts = translate(self.template_file, self.validate_only, self.orchestrator, self.provider, self.log_level)
         if self.output_dir:
             with open(self.output_dir + TOPOLOGY_TPL_NAME, "w+") as f:
                 yaml.dump(self.output_dict, f)
@@ -71,6 +72,10 @@ class TranslatorCli(object):
                             default='nfv',
                             choices=['nfv', 'clouni'],
                             help='Translate to template supported by specific orchestrator')
+        parser.add_argument('--provider',
+                            default='cumulus',
+                            choices=['cumulus'],
+                            help='Translate to template supported by specific vnf provider')
         return parser
 
 

@@ -1,4 +1,7 @@
 import copy
+import os
+from itertools import groupby
+
 import translator.utils as utils
 import ipaddress
 import yaml
@@ -7,6 +10,9 @@ import sys
 
 DEF_PATH = '/definitions/'
 TRANS_PATH = '/translator/'
+ORCHECTRATOR_PATH = '/definitions/Orchestrator_configs/'
+VNF_PATH = DEF_PATH + '/VNF_types/'
+PROVIDERS_PATH = DEF_PATH + '/Provider_types/'
 
 from toscaparser.functions import GetProperty
 
@@ -16,13 +22,13 @@ class ToscaNormativeTemplate(object):
         Класс транслятора
         Вход:
         1) tosca_parser_tpl - тип который вернул tosca-parser
-        2) yaml_dict_mapping - yaml dict маппинга TOSCA_NFV_mapping.yaml
+        2) yaml_dict_mapping - yaml dict маппинга TOSCA_NFV_mapping_nfv.yaml
         Атрибуты:
         self.definitions - yaml dict определений типов NFV и нормативной TOCSA
         self.node_templates - шаблоны узлов в данной топологии
         self.relationship_templates - шаблоны отношений в данной топологии
         self.version - версия TOSCA
-        self.mapping - yaml dict маппинга TOSCA_NFV_mapping.yaml
+        self.mapping - yaml dict маппинга TOSCA_NFV_mapping_nfv.yaml
         self.generated_scripts - dict of lists строк ansible скриптов для настройки compute узлов
         self.num_addresses - dict в ктором лежит таблица соответствия адресов и compute узлов в формате {host:[address1, address2]}
         self.result_template - итоговой нормативный шаблон TOSCA
@@ -63,12 +69,18 @@ class ToscaNormativeTemplate(object):
         9) при использовании метода get_result - возвращаем результат работы
     """
 
-    def __init__(self, tosca_parser_tpl, yaml_dict_mapping, orchestrator):
+    def __init__(self, tosca_parser_tpl, yaml_dict_mapping, orchestrator, provider):
         self.orchestrator = orchestrator
+        self.provider = provider
         topology_template = tosca_parser_tpl.topology_template
         self.definitions = topology_template.custom_defs
         self.node_templates = {}
         self.relationship_templates = {}
+        with open(utils.get_project_root_path() + ORCHECTRATOR_PATH + orchestrator + ".yaml", "r") as f:
+            orc = yaml.load(f, Loader=yaml.SafeLoader)
+        self.script_type = orc['script_type']
+        self.configure_node_type = orc['configure_node_type']
+        self.address_config = orc['address_config']
         self.version = tosca_parser_tpl.version
         for tmpl in topology_template.nodetemplates:
             self.node_templates[tmpl.name] = tmpl.entity_tpl
@@ -99,36 +111,6 @@ class ToscaNormativeTemplate(object):
 
     def translate_specific_types(self, tmp_template, tmpl_name):
         if tmp_template != {}:
-            if tmp_template[tmpl_name]['type'] == 'tosca.nodes.Compute':
-                if 'interfaces' in tmp_template[tmpl_name] and 'Standard' in tmp_template[tmpl_name]['interfaces'] and \
-                        'configure' in tmp_template[tmpl_name]['interfaces']['Standard']:
-                    if 'implementation' in tmp_template[tmpl_name]['interfaces']['Standard']['configure']:
-                        def_file = utils.get_project_root_path() + DEF_PATH + \
-                                   tmp_template[tmpl_name]['interfaces']['Standard']['configure']['implementation']
-                    elif not isinstance(tmp_template[tmpl_name]['interfaces']['Standard']['configure'], dict):
-                        def_file = utils.get_project_root_path() + DEF_PATH + \
-                                   tmp_template[tmpl_name]['interfaces']['Standard']['configure']
-                    else:
-                        logging.error("Error! Unknown type of 'configure'.")
-                        sys.exit(1)
-                    try:
-                        with open(def_file, "r+") as f:
-                            vnf_def = f.readlines()
-                    except:
-                        logging.error("Error! Failed to open VNF template file.")
-                        sys.exit(1)
-
-                    if 'properties' in tmp_template[tmpl_name]:
-                        if 'meta' in tmp_template[tmpl_name]['properties']:
-                            script = "configure_" + tmp_template[tmpl_name]['properties']['meta'] + ".yaml"
-                            if script not in self.generated_scripts:
-                                self.generated_scripts[script] = vnf_def
-                            else:
-                                self.generated_scripts[script] += vnf_def
-                        else:
-                            logging.error("Error! VNFD hasn't meta, please check mapping for VNFD.")
-                            sys.exit(1)
-
             if tmp_template[tmpl_name]['type'] == 'tosca.nodes.network.Port':
                 if 'properties' not in tmp_template[tmpl_name] or 'ip_address' not in tmp_template[tmpl_name][
                     'properties']:
@@ -173,18 +155,29 @@ class ToscaNormativeTemplate(object):
                                     self.num_addresses[elem['binding']] += [address]
                                 else:
                                     break
-                                # убрать?
                                 if ext:
-                                    self.new_element_templates[elem['binding']] = utils.deep_update_dict(
-                                        self.new_element_templates[elem['binding']],
-                                        {'properties': {'ports': {'external': {'addresses': [address]}}}})
+                                    if self.address_config == 'addresses':
+                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                            self.new_element_templates[elem['binding']],
+                                            {'properties': {'ports': {'external': {'addresses': [address]}}}})
+                                    elif self.address_config == 'port_name':
+                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                            self.new_element_templates[elem['binding']],
+                                            # возможность нескольких айпи - потом сделаю
+                                            {'properties': {'ports': {'external': {'port_name': address}}}})
                                 else:
-                                    self.new_element_templates[elem['binding']] = utils.deep_update_dict(
-                                        self.new_element_templates[elem['binding']],
-                                        {'properties': {'ports': {'internal': {'addresses': [address]}}}})
+                                    if self.address_config == 'addresses':
+                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                            self.new_element_templates[elem['binding']],
+                                            {'properties': {'ports': {'internal': {'addresses': [address]}}}})
+                                    elif self.address_config == 'port_name':
+                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                            self.new_element_templates[elem['binding']],
+                                            # возможность нескольких айпи - потом сделаю
+                                            {'properties': {'ports': {'internal': {'port_name': address}}}})
                                     self.new_element_templates[elem['binding']] = utils.deep_update_dict(
                                         self.new_element_templates[elem['binding']], {'interfaces': {'Standard': {
-                                            'configure': {'inputs': {
+                                            self.script_type: {'inputs': {
                                                 'iPAddressDict': {
                                                     str(len(self.num_addresses[elem['binding']])): {
                                                         'address': address, 'cidr': cidr}}}}}}})
@@ -314,28 +307,21 @@ class ToscaNormativeTemplate(object):
                                                 break
                                     if iter:
                                         for elem in atr_k:
+                                            if 'rename' in elem:
+                                                tmpl_name += '_' + elem['rename']
+                                                if tmpl_name not in tmp_template:
+                                                    tmp_template[tmpl_name] = {}
                                             if 'parameter' in elem:
                                                 if 'format' in elem:
-                                                    if elem['format'] == '{node_name}':
-                                                        if tmpl_name in tmp_template:
-                                                            tmp_template[tmpl_name] = utils.deep_update_dict(
-                                                                tmp_template[tmpl_name],
-                                                                utils.str_dots_to_dict(elem['parameter'],
-                                                                                       tmpl_name))
-                                                        else:
-                                                            tmp_template[tmpl_name] = utils.str_dots_to_dict(
-                                                                elem['parameter'],
-                                                                tmpl_name)
+                                                    if tmpl_name in tmp_template:
+                                                        tmp_template[tmpl_name] = utils.deep_update_dict(
+                                                            tmp_template[tmpl_name],
+                                                            utils.str_dots_to_dict(elem['parameter'],
+                                                                                   elem['format'].format(iter)))
                                                     else:
-                                                        if tmpl_name in tmp_template:
-                                                            tmp_template[tmpl_name] = utils.deep_update_dict(
-                                                                tmp_template[tmpl_name],
-                                                                utils.str_dots_to_dict(elem['parameter'],
-                                                                                       elem['format'].format(iter)))
-                                                        else:
-                                                            tmp_template[tmpl_name] = utils.str_dots_to_dict(
-                                                                elem['parameter'],
-                                                                elem['format'].format(iter))
+                                                        tmp_template[tmpl_name] = utils.str_dots_to_dict(
+                                                            elem['parameter'],
+                                                            elem['format'].format(iter))
                                                 else:
                                                     if tmpl_name in tmp_template:
                                                         tmp_template[tmpl_name] = utils.deep_update_dict(
@@ -358,32 +344,50 @@ class ToscaNormativeTemplate(object):
 
                                             if 'node_name' in elem:
                                                 if elem['node_name'] == 'check':
-                                                    if iter not in self.new_element_templates or elem['type'] != \
-                                                            self.new_element_templates[iter]['type']:
-                                                        logging.error("Error! The requirement is not defined.")
-                                                        sys.exit(1)
+                                                    if iter not in self.new_element_templates:
+                                                        logging.warning("Error! The requirement is not defined.")
                                                 elif elem['node_name'] == 'rename':
-                                                    if iter in self.new_element_templates and elem['type'] == \
-                                                            self.new_element_templates[iter]['type']:
-                                                        tmp_template[tmpl_name] = utils.deep_update_dict(
-                                                            tmp_template[tmpl_name],
-                                                            self.new_element_templates.pop(iter))
-                                                        additional_keys += [iter]
+                                                    if iter in self.new_element_templates:
+                                                        if 'requirement_format' not in elem:
+                                                            tmp_template[tmpl_name] = utils.deep_update_dict(
+                                                                tmp_template[tmpl_name],
+                                                                self.new_element_templates.pop(iter))
+                                                            additional_keys += [iter]
+                                                        else:
+                                                            if elem['requirement_format'].format(
+                                                                    iter) not in self.new_element_templates:
+                                                                self.new_element_templates[
+                                                                    elem['requirement_format'].format(iter)] = {}
+                                                            tmp_template[tmpl_name] = utils.deep_update_dict(
+                                                                tmp_template[tmpl_name],
+                                                                self.new_element_templates.pop(
+                                                                    elem['requirement_format'].format(iter)))
+                                                            additional_keys += [elem['requirement_format'].format(iter)]
                                                     else:
-                                                        logging.error("Error! The requirement is not defined.")
-                                                        sys.exit(1)
+                                                        logging.warning("Error! The requirement is not defined.")
                                                 elif elem['node_name'] == 'not change':
-                                                    if iter in self.new_element_templates and elem['type'] == \
-                                                            self.new_element_templates[iter]['type']:
-                                                        self.new_element_templates[iter] = utils.deep_update_dict(
-                                                            self.new_element_templates[iter],
-                                                            tmp_template[tmpl_name])
+                                                    if iter in self.new_element_templates:
+                                                        if 'requirement_format' not in elem:
+                                                            self.new_element_templates[iter] = utils.deep_update_dict(
+                                                                self.new_element_templates[iter],
+                                                                tmp_template[tmpl_name])
+                                                        else:
+                                                            if elem['requirement_format'].format(
+                                                                    iter) not in self.new_element_templates:
+                                                                self.new_element_templates[
+                                                                    elem['requirement_format'].format(iter)] = {}
+                                                            self.new_element_templates[
+                                                                elem['requirement_format'].format(
+                                                                    iter)] = utils.deep_update_dict(
+                                                                self.new_element_templates[
+                                                                    elem['requirement_format'].format(iter)],
+                                                                tmp_template[tmpl_name])
                                                         new_additional_keys += [tmpl_name]
                                                     else:
-                                                        logging.error("Error! The requirement is not defined.")
-                                                        sys.exit(1)
+                                                        logging.warning("Error! The requirement is not defined.")
                                                 else:
-                                                    logging.warning("Unknown node_name parameter.")
+                                                    logging.warning("Error! unknown type of node_name.")
+
                         self.new_element_templates = utils.deep_update_dict(self.new_element_templates,
                                                                             self.translate_specific_types(tmp_template,
                                                                                                           tmpl_name))
@@ -399,56 +403,71 @@ class ToscaNormativeTemplate(object):
                 self.new_element_templates.pop(key)
         logging.info("Successfully delete unused nodes.")
         for key, value in self.new_element_templates.items():
-            script = "configure_" + key + ".yaml"
-            if 'interfaces' in value and 'Standard' in value['interfaces'] and 'configure' in value['interfaces'][
-                'Standard']:
-                if 'implementation' in value['interfaces']['Standard']['configure']:
-                    self.new_element_templates[key]['interfaces']['Standard']['configure']['implementation'] = script
-                    logging.info("Successfully added {} script to {}.".format(script, key))
-                elif not isinstance(value['interfaces']['Standard']['configure'], dict):
-                    self.new_element_templates[key]['interfaces']['Standard']['configure'] = script
-                    logging.info("Successfully added {} script to {}.".format(script, key))
-                else:
-                    logging.error("Error! Unknown type of 'configure'.")
+            vnffiles = [f for f in os.listdir(utils.get_project_root_path() + VNF_PATH) if
+                        os.path.isfile(os.path.join(VNF_PATH, f))]
+            script = self.script_type + "_" + self.provider + ".yaml"
+            try:
+                with open(utils.get_project_root_path() + PROVIDERS_PATH + self.provider + '.yaml', "r+") as f:
+                    vnf_def = f.readlines()
+            except:
+                logging.error("Error! Failed to open provider template file.")
+                sys.exit(1)
+            if script not in self.generated_scripts:
+                self.generated_scripts[script] = vnf_def
+            else:
+                self.generated_scripts[script] += vnf_def
+            for file in vnffiles:
+                try:
+                    with open(utils.get_project_root_path() + VNF_PATH + file, "r+") as f:
+                        vnf_def = f.readlines()
+                except:
+                    logging.error("Error! Failed to open VNF template file.")
                     sys.exit(1)
+                if script not in self.generated_scripts:
+                    self.generated_scripts[script] = vnf_def
+                else:
+                    self.generated_scripts[script] += vnf_def
+            if self.configure_node_type == value['type']:
+                self.new_element_templates[key] = utils.deep_update_dict(self.new_element_templates[key], {
+                    'interfaces': {'Standard': {self.script_type: {'implementation': script}}}})
         element_templates = utils.deep_update_dict(element_templates, self.new_element_templates)
         # ЭТО ТУТ ВРЕМЕННО, мне просто хочется потестить, потом будут отдельные маппинги для оркестраторов
-#        if self.orchestrator == 'clouni':
-#            self.new_element_templates = {}
-#            pop_keys = []
-#            for key, value in element_templates.items():
-#                if 'interfaces' in value and 'Standard' in value['interfaces'] and 'configure' in value['interfaces'][
-#                   'Standard']:
-#                    self.new_element_templates['software_for_' + key] = {'interfaces': {'Standard': {'create': {}}},
-#                                                                         'requirements': [{'host': key}],
-#                                                                         'type': 'tosca.nodes.SoftwareComponent'}
-#                    self.new_element_templates['software_for_' + key]['interfaces'][
-#                        'Standard']['create'] = value['interfaces'][
-#                        'Standard']['configure']
-#                    value.pop('interfaces')
-#                if 'type' in value and value['type'] == 'tosca.nodes.Compute':
-#                    if 'properties' in value and 'ports' in value['properties']:
-#                        for k, v in value['properties']['ports'].items():
-#                            if 'addresses' in v:
-#                                v['port_name'] = v['addresses'][0]
-#                                v.pop('addresses')
-#                    if 'properties' in value and 'meta' in value['properties']:
-#                        value['properties'].pop('meta')
-#                if 'type' in value and value['type'] == 'tosca.nodes.network.Port':
-#                    if 'requirements' in value:
-#                        flag = False
-#                        for req in value['requirements']:
-#                            if 'link' in req:
-#                                flag = True
-#                                break
-#                        if not flag:
-#                            pop_keys += [key]
-#                        for req in value['requirements']:
-#                            if 'binding' in req:
-#                                value['requirements'].remove(req)
-#            for key in pop_keys:
-#                element_templates.pop(key)
-#            element_templates = utils.deep_update_dict(element_templates, self.new_element_templates)
+        #        if self.orchestrator == 'clouni':
+        #            self.new_element_templates = {}
+        #            pop_keys = []
+        #            for key, value in element_templates.items():
+        #                if 'interfaces' in value and 'Standard' in value['interfaces'] and 'configure' in value['interfaces'][
+        #                   'Standard']:
+        #                    self.new_element_templates['software_for_' + key] = {'interfaces': {'Standard': {'create': {}}},
+        #                                                                         'requirements': [{'host': key}],
+        #                                                                         'type': 'tosca.nodes.SoftwareComponent'}
+        #                    self.new_element_templates['software_for_' + key]['interfaces'][
+        #                        'Standard']['create'] = value['interfaces'][
+        #                        'Standard']['configure']
+        #                    value.pop('interfaces')
+        #                if 'type' in value and value['type'] == 'tosca.nodes.Compute':
+        #                    if 'properties' in value and 'ports' in value['properties']:
+        #                        for k, v in value['properties']['ports'].items():
+        #                            if 'addresses' in v:
+        #                                v['port_name'] = v['addresses'][0]
+        #                                v.pop('addresses')
+        #                    if 'properties' in value and 'meta' in value['properties']:
+        #                        value['properties'].pop('meta')
+        #                if 'type' in value and value['type'] == 'tosca.nodes.network.Port':
+        #                    if 'requirements' in value:
+        #                        flag = False
+        #                        for req in value['requirements']:
+        #                            if 'link' in req:
+        #                                flag = True
+        #                                break
+        #                        if not flag:
+        #                            pop_keys += [key]
+        #                        for req in value['requirements']:
+        #                            if 'binding' in req:
+        #                                value['requirements'].remove(req)
+        #            for key in pop_keys:
+        #                element_templates.pop(key)
+        #            element_templates = utils.deep_update_dict(element_templates, self.new_element_templates)
         self.result_template['tosca_definitions_version'] = self.version
         self.result_template['topology_template'] = {}
         self.result_template['topology_template']['node_templates'] = element_templates

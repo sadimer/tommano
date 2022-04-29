@@ -298,8 +298,7 @@ topology_template:
       properties:
         ports:
           internal:
-            addresses:
-            - { get_property: [ port_0, ip_address ] }
+            port_name: { get_property: [ port_0, ip_address ] }
       capabilities:
         host:
           properties:
@@ -316,8 +315,7 @@ topology_template:
       properties:
         ports:
           internal:
-            addresses:
-            - { get_property: [ port_1, ip_address ] }
+            port_name: { get_property: [ port_1, ip_address ] }
       capabilities:
         host:
           properties:

@@ -38,11 +38,6 @@ nfv.nodes.VDU:
       virtualStorageDesc.swImageDesc.operatingSystem:
         - type: tosca.nodes.Compute
           parameter: capabilities.os.properties.type
-        - type: tosca.nodes.Compute
-          parameter: interfaces.Standard.create.implementation
-          format: "Configure_types/{}.yaml"
-        - type: tosca.nodes.Compute
-          parameter: properties.meta
       virtualStorageDesc.swImageDesc.swImage:
         - type: tosca.nodes.Compute
       virtualStorageDesc.swImageDesc.diskFormat:
@@ -63,12 +58,6 @@ nfv.nodes.VDU:
       swImageDesc.operatingSystem:
         - type: tosca.nodes.Compute
           parameter: capabilities.os.properties.type
-        - type: tosca.nodes.Compute
-          parameter: interfaces.Standard.create.implementation
-          format: "Configure_types/{}.yaml"
-        - type: tosca.nodes.Compute
-          parameter: properties.meta
-          format: "{node_name}"
       swImageDesc.swImage:
         - type: tosca.nodes.Compute
       swImageDesc.diskFormat:
@@ -167,8 +156,9 @@ nfv.nodes.VNFD:
       - type: tosca.nodes.network.Port
         node_name: check
     vdu:
-      - type: tosca.nodes.Compute
-        parameter: properties.meta
+      - type: tosca.nodes.SoftwareComponent
+        requirement_format: "software_for_{}"
+        parameter: requirements.[0].host
         node_name: not change
 
 nfv.nodes.VNFD.DHCP:
