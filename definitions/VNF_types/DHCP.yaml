@@ -16,6 +16,7 @@
         range {{ DHCP_rangeStart }} {{ DHCP_rangeEnd }};
     }
     EOF
+  become: yes
 - os_port_facts:
     filters:
       name: "{{ item.key }}"    
@@ -23,7 +24,11 @@
   delegate_to: 127.0.0.1
   with_dict: "{{ DHCP_staticHosts }}"
   when: DHCP_staticHosts is defined
-  
+  become: yes
+
+- debug:
+    msg: "{{ result.results }}"
+
 - name: DHCP VNFD
   shell: |
     cat >> /etc/dhcp/dhcpd.conf << EOF
@@ -33,9 +38,11 @@
     }
     EOF
   with_items: "{{ result.results }}"
+  become: yes
 
 - name: Restart service dhcpd
   systemd:
     state: restarted
     daemon_reload: yes
     name: dhcpd
+  become: yes

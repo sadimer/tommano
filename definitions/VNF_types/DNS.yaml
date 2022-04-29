@@ -4,11 +4,13 @@
     RESOLVCONF=no
     OPTIONS="-u bind -{{ DNS_iPAddressType[3] }}"
     EOF
+  become: yes
 - name: Restart service bind9
   systemd:
     state: restarted
     daemon_reload: yes
     name: bind9
+  become: yes
 
 - name: DNS VNFD
   shell: |
@@ -16,6 +18,7 @@
     acl "trusted" {
         {{ DNS_internalNetAddr }};
     EOF
+  become: yes
         
 - name: DNS VNFD
   shell: |
@@ -24,6 +27,7 @@
     EOF
   with_dict: "{{ DNS_staticHosts }}"
   when: DNS_staticHosts is defined
+  become: yes
 
 - name: DNS VNFD
   shell: |
@@ -37,6 +41,7 @@
         allow-transfer { none; };
         forwarders {
     EOF
+  become: yes
     
 - name: DNS VNFD
   shell: |
@@ -45,6 +50,7 @@
     EOF
   with_dict: "{{ DNS_forwarders }}"
   when: DNS_forwarders is defined
+  become: yes
   
 - name: DNS VNFD
   shell: |
@@ -53,6 +59,8 @@
         dnssec-validation auto;
     };
     EOF
+  become: yes
+
 - name: DNS VNFD
   shell: |    
     cat >> /etc/bind/named.conf.local << EOF
@@ -65,6 +73,7 @@
       file "/etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}";
     };
     EOF
+  become: yes
     
 - name: DNS VNFD
   shell: | 
@@ -84,6 +93,7 @@
      IN NS cumulus.{{ DNS_domainName }}.
     cumulus.{{ DNS_domainName }}. IN A {{ DNS_internalNetAddr }}
     EOF
+  become: yes
     
 - name: DNS VNFD
   shell: | 
@@ -93,6 +103,7 @@
     EOF
   with_dict: "{{ DNS_staticHosts }}"
   when: DNS_staticHosts is defined
+  become: yes
   
 - name: DNS VNFD
   shell: | 
@@ -112,6 +123,7 @@
     ; PTR Records
     {{ DNS_internalNetAddr.split('.')[3] }} IN PTR cumulus.{{ DNS_domainName }}.
     EOF
+  become: yes
     
 - name: DNS VNFD
   shell: | 
@@ -120,16 +132,19 @@
     EOF
   with_dict: "{{ DNS_staticHosts }}"
   when: DNS_staticHosts is defined
+  become: yes
 
 - name: DNS VNFD
   shell: | 
     named-checkconf
     named-checkzone {{ DNS_domainName }} /etc/bind/zones/db.{{ DNS_domainName }}
     named-checkzone {{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}
+  become: yes
   
 - name: Restart service bind9
   systemd:
     state: restarted
     daemon_reload: yes
     name: bind9
+  become: yes
 

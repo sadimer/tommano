@@ -3,9 +3,10 @@
     cat >> /etc/network/interfaces << EOF
     auto swp{{ item.key }}
     iface swp{{ item.key }}
-        address {{ item.value.key }}/{{ item.value.value | ipaddr('prefix') }}
-        broadcast {{ item.value.value | ipaddr('broadcast') }}
+        address {{ item.value['address'] }}/{{ item.value['cidr'] | ipaddr('prefix') }}
+        broadcast {{ item.value['cidr'] | ipaddr('broadcast') }}
     EOF
     ifreload -a
   with_dict: "{{ iPAddressDict }}"
   when: iPAddressDict is defined
+  become: yes

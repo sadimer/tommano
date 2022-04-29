@@ -1,30 +1,35 @@
- 
 - name: Nat VNFD
   shell: |
     cat >> /etc/cumulus/switchd.conf << EOF
     nat.dynamic_enable = TRUE
     nat.static_enable = TRUE
     EOF
+  become: yes
+
 - name: Restart service switchd
   systemd:
     state: restarted
     daemon_reload: yes
     name: switchd
+  become: yes
 
 - name: Nat VNFD
   shell: |
     net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}
     ifconfig eth0:{{ item.sourceAddrPr.split('.')[3] }} {{ item.sourceAddrPr }} netmask {{ item.sourceAddrPr | ipaddr('netmask') }}
   with_items: "{{ Nat_rules }}"
-  when: Nat_rules is defined  and item.typeNat == "dnat"
+  when: Nat_rules is defined  and item.routingType == "dnat"
+  become: yes
   
 - name: Nat VNFD
   shell: |
     net add nat {{ item.typeNat }} {{ item.routingType }} {{ item.protocol }} {{ item.sourceAddrPr | ipaddr('address') }} translate {{ item.destAddrPr | ipaddr('address') }}
     ifconfig eth0:{{ item.destAddrPr.split('.')[3] }} {{ item.destAddrPr }} netmask {{ item.destAddrPr | ipaddr('netmask') }}
   with_items: "{{ Nat_rules }}"
-  when: Nat_rules is defined and item.typeNat == "snat"
+  when: Nat_rules is defined and item.routingType == "snat"
+  become: yes
   
 - name: Nat VNFD
   shell: |
     net commit
+  become: yes
