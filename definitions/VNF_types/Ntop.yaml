@@ -4,6 +4,7 @@
     -d=/var/lib/ntopng
     EOF
   become: yes
+  when: Ntop_analyze_endpointPort is defined
     
 - name: Ntop VNFD
   shell: |
@@ -37,3 +38,6 @@
     daemon_reload: yes
     name: ntopng
   become: yes
+  when: Ntop_analyze_endpointPort is defined
+
+

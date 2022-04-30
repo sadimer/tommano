@@ -22,7 +22,7 @@ topology_template:
       interfaces:
         Standard:
           configure:
-            implementation: configure_my_vdu.yaml
+            implementation: configure_cumulus.yaml
             inputs:
               DHCP_defaultLeaseTime: 600
               DHCP_gateway: 192.168.2.1
@@ -82,9 +82,9 @@ topology_template:
               Tshark_analyze_pathToPcap: /tmp/dump.pcap
               iPAddressDict:
                 '1':
-                  192.168.2.11: 192.168.2.0/24
+                  address: 192.168.2.11
+                  cidr: 192.168.2.0/24
       properties:
-        meta: my_vdu
         ports:
           internal:
             addresses:
@@ -122,7 +122,7 @@ topology_template:
       interfaces:
         Standard:
           configure:
-            implementation: configure_new_vdu.yaml
+            implementation: configure_cumulus.yaml
             inputs:
               Routing_routes:
               - destCidr: 192.168.2.0/24
@@ -134,9 +134,9 @@ topology_template:
                 sourceAddr: 0.0.0.0
               iPAddressDict:
                 '1':
-                  192.168.2.12: 192.168.2.0/24
+                  address: 192.168.2.12
+                  cidr: 192.168.2.0/24
       properties:
-        meta: new_vdu
         ports:
           internal:
             addresses:

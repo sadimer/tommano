@@ -17,17 +17,16 @@
     }
     EOF
   become: yes
+  when: DHCP_internalNetCidr is defined
+
 - os_port_facts:
     filters:
-      name: "{{ item.key }}"    
+      name: "{{ item.value }}"
   register: result
-  delegate_to: 127.0.0.1
+  delegate_to: localhost
   with_dict: "{{ DHCP_staticHosts }}"
   when: DHCP_staticHosts is defined
   become: yes
-
-- debug:
-    msg: "{{ result.results }}"
 
 - name: DHCP VNFD
   shell: |
@@ -38,6 +37,7 @@
     }
     EOF
   with_items: "{{ result.results }}"
+  when: DHCP_internalNetCidr is defined
   become: yes
 
 - name: Restart service dhcpd
@@ -45,4 +45,7 @@
     state: restarted
     daemon_reload: yes
     name: dhcpd
+  when: DHCP_internalNetCidr is defined
   become: yes
+
+

@@ -12,17 +12,17 @@ class TestTranslate(unittest.TestCase):
     os.chdir(utils.get_project_root_path())
 
     def test_validate_small_tpl(self):
-        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", True, 'nfv')
+        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", True, 'nfv', 'cumulus')
         self.assertEqual(generated_scripts, {})
         self.assertEqual(output_tpl, {"template successfully passed validation": "examples/small_nfv_example.yaml"})
 
     def test_validate_full_tpl(self):
-        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", True, 'nfv')
+        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", True, 'nfv', 'cumulus')
         self.assertEqual(generated_scripts, {})
         self.assertEqual(output_tpl, {"template successfully passed validation": "examples/full_nfv_example.yaml"})
 
     def test_small_tpl(self):
-        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", False, 'nfv')
+        output_tpl, generated_scripts = translate("examples/small_nfv_example.yaml", False, 'nfv', 'cumulus')
         with open("testing/small/topology.yaml", "r") as tpl_file:
             data = yaml.load(tpl_file, Loader=SafeLoader)
         self.assertIsNotNone(output_tpl)
@@ -91,7 +91,6 @@ class TestTranslate(unittest.TestCase):
                 self.assertIn('gateway', x['interfaces']['Standard']['configure']['inputs']['Routing_routes'][0])
                 self.assertIn('src', x['interfaces']['Standard']['configure']['inputs']['Routing_routes'][0])
                 self.assertIn('implementation', x['interfaces']['Standard']['configure'])
-                self.assertIn('meta', x['properties'])
                 self.assertIn('ports', x['properties'])
                 self.assertIsNotNone(x['properties']['ports'])
                 self.assertIsInstance(x['properties']['ports'], dict)
@@ -111,7 +110,7 @@ class TestTranslate(unittest.TestCase):
             self.assertEqual(value, data)
 
     def test_full_tpl(self):
-        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", False, 'nfv')
+        output_tpl, generated_scripts = translate("examples/full_nfv_example.yaml", False, 'nfv', 'cumulus')
         with open("testing/full/topology.yaml", "r") as tpl_file:
             data = yaml.load(tpl_file, Loader=SafeLoader)
         self.assertIsNotNone(output_tpl)

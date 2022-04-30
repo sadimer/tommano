@@ -308,7 +308,7 @@ topology_template:
         os:
           properties:
             architecture: x86_64
-            type: cirros
+            type: lubuntu
             
     custom_server_1:
       type: tosca.nodes.Compute
@@ -325,4 +325,4 @@ topology_template:
         os:
           properties:
             architecture: x86_64
-            type: cirros
+            type: lubuntu

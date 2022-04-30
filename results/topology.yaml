@@ -10,7 +10,7 @@ topology_template:
         os:
           properties:
             architecture: x86_64
-            type: cirros
+            type: lubuntu
       properties:
         ports:
           internal:
@@ -26,7 +26,7 @@ topology_template:
         os:
           properties:
             architecture: x86_64
-            type: cirros
+            type: lubuntu
       properties:
         ports:
           internal:
@@ -83,7 +83,7 @@ topology_template:
       interfaces:
         Standard:
           create:
-            implementation: configure_router_vdu.yaml
+            implementation: create_cumulus.yaml
             inputs:
               DHCP_defaultLeaseTime: 600
               DHCP_gateway: 192.168.2.1
@@ -191,7 +191,8 @@ topology_template:
               Tshark_analyze_pathToPcap: /tmp/dump.pcap
               iPAddressDict:
                 '1':
-                  192.168.2.1: 192.168.2.0/24
+                  address: 192.168.2.1
+                  cidr: 192.168.2.0/24
       requirements:
       - host: router_vdu
       type: tosca.nodes.SoftwareComponent

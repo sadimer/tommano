@@ -5,12 +5,15 @@
     OPTIONS="-u bind -{{ DNS_iPAddressType[3] }}"
     EOF
   become: yes
+  when: DNS_domainName is defined
+
 - name: Restart service bind9
   systemd:
     state: restarted
     daemon_reload: yes
     name: bind9
   become: yes
+  when: DNS_domainName is defined
 
 - name: DNS VNFD
   shell: |
@@ -19,6 +22,7 @@
         {{ DNS_internalNetAddr }};
     EOF
   become: yes
+  when: DNS_domainName is defined
         
 - name: DNS VNFD
   shell: |
@@ -42,6 +46,7 @@
         forwarders {
     EOF
   become: yes
+  when: DNS_domainName is defined
     
 - name: DNS VNFD
   shell: |
@@ -60,6 +65,7 @@
     };
     EOF
   become: yes
+  when: DNS_domainName is defined
 
 - name: DNS VNFD
   shell: |    
@@ -74,6 +80,7 @@
     };
     EOF
   become: yes
+  when: DNS_domainName is defined
     
 - name: DNS VNFD
   shell: | 
@@ -90,10 +97,11 @@
       2419200 ; Expire
       604800 ) ; Negative Cache TTL
     ;
-     IN NS cumulus.{{ DNS_domainName }}.
+    @ IN NS cumulus.{{ DNS_domainName }}.
     cumulus.{{ DNS_domainName }}. IN A {{ DNS_internalNetAddr }}
     EOF
   become: yes
+  when: DNS_domainName is defined
     
 - name: DNS VNFD
   shell: | 
@@ -119,11 +127,12 @@
       2419200 ; Expire
       604800 ) ; Negative
     ; name servers
-     IN NS cumulus.{{ DNS_domainName }}.
+    @ IN NS cumulus.{{ DNS_domainName }}.
     ; PTR Records
     {{ DNS_internalNetAddr.split('.')[3] }} IN PTR cumulus.{{ DNS_domainName }}.
     EOF
   become: yes
+  when: DNS_domainName is defined
     
 - name: DNS VNFD
   shell: | 
@@ -140,6 +149,7 @@
     named-checkzone {{ DNS_domainName }} /etc/bind/zones/db.{{ DNS_domainName }}
     named-checkzone {{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}.in-addr.arpa /etc/bind/zones/db.{{ '.'.join(DNS_internalNetAddr.split('.')[:3][::-1]) }}
   become: yes
+  when: DNS_domainName is defined
   
 - name: Restart service bind9
   systemd:
@@ -147,4 +157,7 @@
     daemon_reload: yes
     name: bind9
   become: yes
+  when: DNS_domainName is defined
+
+
 

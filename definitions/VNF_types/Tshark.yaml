@@ -5,6 +5,7 @@
     tshark -b duration:{{ Tshark_analyze_duration }} -b files:{{ Tshark_analyze_files }} -f "{{ Tshark_analyze_captureFilter }}" -w {{ Tshark_analyze_pathToPcap }} -i {{ Tshark_analyze_interfaceName }}
     EOF
   become: yes
+  when: Tshark_analyze_captureFilter is defined
     
 - name: Restart service tshark
   systemd:
@@ -12,3 +13,6 @@
     daemon_reload: yes
     name: tshark
   become: yes
+  when: Tshark_analyze_captureFilter is defined
+
+

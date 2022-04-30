@@ -2,7 +2,7 @@ topology_template:
   node_templates:
     my_ext_cpd:
       properties:
-        ip_address: 10.195.189.165
+        ip_address: 10.70.168.238
       requirements:
       - binding: my_vdu
       - link: my_vl
@@ -17,11 +17,11 @@ topology_template:
         os:
           properties:
             architecture: x86
-            type: cumulus_vx
+            type: cumulus
       interfaces:
         Standard:
           configure:
-            implementation: configure_my_vdu.yaml
+            implementation: configure_cumulus.yaml
             inputs:
               Routing_routes:
               - destCidr: 0.0.0.0/0
@@ -32,29 +32,30 @@ topology_template:
               - destAddr: 0.0.0.0
                 sourceAddr: 0.0.0.0
               iPAddressDict:
-                1:
-                  10.195.189.165: 10.195.189.0/24
-                2:
-                  10.195.189.159: 10.195.189.0/24
+                '1':
+                  address: 10.70.168.238
+                  cidr: 10.70.168.0/24
+                '2':
+                  address: 10.70.168.212
+                  cidr: 10.70.168.0/24
       properties:
-        meta: my_vdu
         ports:
           internal:
             addresses:
-            - 10.195.189.165
-            - 10.195.189.159
+            - 10.70.168.238
+            - 10.70.168.212
       type: tosca.nodes.Compute
     my_vl:
       properties:
-        cidr: 10.195.189.0/24
-        end_ip: 10.195.189.252
-        gateway_ip: 10.195.189.1
-        network_name: net48
-        start_ip: 10.195.189.10
+        cidr: 10.70.168.0/24
+        end_ip: 10.70.168.252
+        gateway_ip: 10.70.168.1
+        network_name: net244
+        start_ip: 10.70.168.10
       type: tosca.nodes.network.Network
     new_ext_cpd:
       properties:
-        ip_address: 10.195.189.159
+        ip_address: 10.70.168.212
       requirements:
       - binding: my_vdu
       - link: my_vl

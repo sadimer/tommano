@@ -59,6 +59,10 @@ def deep_update_dict(source, overrides):
         elif isinstance(v, (list, set, tuple)) and isinstance(source.get(k), type(v)):
             type_save = type(v)
             source[k] = type_save(itertools.chain(iter(source[k]), iter(v)))
+            if isinstance(source[k], list):
+                tmp = []
+                [tmp.append(x) for x in source[k] if x not in tmp]
+                source[k] = tmp
         else:
             source[k] = v
     return source

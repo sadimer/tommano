@@ -5,6 +5,7 @@
     nat.static_enable = TRUE
     EOF
   become: yes
+  when: Nat_rules is defined
 
 - name: Restart service switchd
   systemd:
@@ -12,6 +13,7 @@
     daemon_reload: yes
     name: switchd
   become: yes
+  when: Nat_rules is defined
 
 - name: Nat VNFD
   shell: |
@@ -33,3 +35,5 @@
   shell: |
     net commit
   become: yes
+  when: Nat_rules is defined
+
