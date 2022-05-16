@@ -80,6 +80,9 @@ topology_template:
             port_name: 192.168.2.1
       type: tosca.nodes.Compute
     software_for_router_vdu:
+      requirements:
+        - host: router_vdu
+      type: tosca.nodes.SoftwareComponent
       interfaces:
         Standard:
           create:
@@ -193,7 +196,4 @@ topology_template:
                 '1':
                   address: 192.168.2.1
                   cidr: 192.168.2.0/24
-      requirements:
-      - host: router_vdu
-      type: tosca.nodes.SoftwareComponent
 tosca_definitions_version: tosca_simple_yaml_1_0

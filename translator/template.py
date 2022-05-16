@@ -415,8 +415,8 @@ class ToscaNormativeTemplate(object):
             if key in self.new_element_templates:
                 self.new_element_templates.pop(key)
         logging.info("Successfully delete unused nodes.")
-        vnffiles = [f for f in os.listdir(utils.get_project_root_path() + VNF_PATH) if
-                    os.path.isfile(os.path.join(utils.get_project_root_path() + VNF_PATH, f))]
+        vnffiles = [f for f in os.listdir(utils.get_project_root_path() + VNF_PATH + self.provider + "/") if
+                    os.path.isfile(os.path.join(utils.get_project_root_path() + VNF_PATH + self.provider + "/", f))]
         script = self.script_type + "_" + self.provider + ".yaml"
         try:
             with open(utils.get_project_root_path() + PROVIDERS_PATH + self.provider + '.yaml', "r+") as f:
@@ -431,7 +431,7 @@ class ToscaNormativeTemplate(object):
         logging.info("Successfully loaded provider template file.")
         for file in vnffiles:
             try:
-                with open(utils.get_project_root_path() + VNF_PATH + file, "r+") as f:
+                with open(utils.get_project_root_path() + VNF_PATH + self.provider + "/" + file, "r+") as f:
                     vnf_def = f.readlines()
             except:
                 logging.error("Error! Failed to open VNF template file.")
