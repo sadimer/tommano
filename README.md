@@ -25,12 +25,17 @@ cd ..
 ```
 3. Установите clouni (или любой другой tosca оркестратор):
 ```
-git clone https://github.com/ispras/clouni
+git clone https://github.com/sadimer/clouni
 cd clouni
+git checkout interfaces_operations
 pip install -r requirements.txt
 python setup.py install
 cd ..
 cd nfv_tosca_translator
+```
+4. Установите sshpass:
+```
+sudo apt install sshpass
 ```
 
 # Использование:
@@ -45,11 +50,11 @@ nfv_tosca_translator --template-file examples/demo_nfv_example.yaml --output-dir
 3. Далее в указанной папке появится файл topology.yaml, его необходимо передать на вход tosca оркестратору:
 ```
 cd results
-clouni --template-file topology.yaml --cluster-name example --provider openstack --configuration-tool ansible --output-file ansible_create.yaml --extra ignore_errors=true
+clouni --template-file ./topology.yaml --cluster-name example --provider openstack --configuration-tool ansible --output-file ./ansible_create.yaml --extra ignore_errors=true --host-parameter private_address
 ```
 4. Разворачиваем шаблон топологии в облаке на базе openstack при помощи ansible:
 ```
-ansible-playbook ansible_create.yaml --become-user root
+sudo ansible-playbook ansible_create.yaml --extra-vars ansible_sudo_pass=admincumulus --extra-vars ansible_user=cumulus
 ```
 Получаем развернутый пример сетевой инфраструктуры (c NAT, nDPI, Firewall, DHCP, DNS, настроенной маршрутизацией и анализом трафика):
 ![model](tosca-nfv.png?raw=true "model")
