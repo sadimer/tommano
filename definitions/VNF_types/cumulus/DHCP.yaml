@@ -26,7 +26,6 @@
   delegate_to: localhost
   with_dict: "{{ DHCP_staticHosts }}"
   when: DHCP_staticHosts is defined
-  become: yes
 
 - name: DHCP VNFD
   shell: |

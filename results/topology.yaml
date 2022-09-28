@@ -25,8 +25,7 @@ topology_template:
             num_cpus: 1
         os:
           properties:
-            architecture: x86_64
-            type: lubuntu
+            type: Ubuntu
       properties:
         ports:
           internal:
@@ -75,14 +74,11 @@ topology_template:
       properties:
         ports:
           external:
-            port_name: 10.100.156.42
+            port_name: l57.40
           internal:
             port_name: 192.168.2.1
       type: tosca.nodes.Compute
     software_for_router_vdu:
-      requirements:
-        - host: router_vdu
-      type: tosca.nodes.SoftwareComponent
       interfaces:
         Standard:
           create:
@@ -114,17 +110,17 @@ topology_template:
                 deepProtocol: wikipedia
                 routingPath: FORWARD
               Nat_rules:
-              - destAddrPr: 10.100.156.10/22
+              - destAddrPr: 10.100.157.10/22
                 protocol: tcp
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
                 typeNat: static
-              - destAddrPr: 10.100.156.10/22
+              - destAddrPr: 10.100.157.10/22
                 protocol: udp
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
                 typeNat: static
-              - destAddrPr: 10.100.156.10/22
+              - destAddrPr: 10.100.157.10/22
                 protocol: icmp
                 routingType: snat
                 sourceAddrPr: 192.168.2.10/24
@@ -132,29 +128,29 @@ topology_template:
               - destAddrPr: 192.168.2.10/24
                 protocol: udp
                 routingType: dnat
-                sourceAddrPr: 10.100.156.10/22
+                sourceAddrPr: 10.100.157.10/22
                 typeNat: static
               - destAddrPr: 192.168.2.10/24
                 protocol: tcp
                 routingType: dnat
-                sourceAddrPr: 10.100.156.10/22
+                sourceAddrPr: 10.100.157.10/22
                 typeNat: static
               - destAddrPr: 192.168.2.10/24
                 protocol: icmp
                 routingType: dnat
-                sourceAddrPr: 10.100.156.10/22
+                sourceAddrPr: 10.100.157.10/22
                 typeNat: static
-              - destAddrPr: 10.100.156.11/22
+              - destAddrPr: 10.100.157.11/22
                 protocol: tcp
                 routingType: snat
                 sourceAddrPr: 192.168.2.11/24
                 typeNat: static
-              - destAddrPr: 10.100.156.11/22
+              - destAddrPr: 10.100.157.11/22
                 protocol: udp
                 routingType: snat
                 sourceAddrPr: 192.168.2.11/24
                 typeNat: static
-              - destAddrPr: 10.100.156.11/22
+              - destAddrPr: 10.100.157.11/22
                 protocol: icmp
                 routingType: snat
                 sourceAddrPr: 192.168.2.11/24
@@ -162,17 +158,17 @@ topology_template:
               - destAddrPr: 192.168.2.11/24
                 protocol: udp
                 routingType: dnat
-                sourceAddrPr: 10.100.156.11/22
+                sourceAddrPr: 10.100.157.11/22
                 typeNat: static
               - destAddrPr: 192.168.2.11/24
                 protocol: tcp
                 routingType: dnat
-                sourceAddrPr: 10.100.156.11/22
+                sourceAddrPr: 10.100.157.11/22
                 typeNat: static
               - destAddrPr: 192.168.2.11/24
                 protocol: icmp
                 routingType: dnat
-                sourceAddrPr: 10.100.156.11/22
+                sourceAddrPr: 10.100.157.11/22
                 typeNat: static
               Ntop_analyze_endpointPort: 3000
               Ntop_analyze_interfacesNames:
@@ -187,7 +183,7 @@ topology_template:
               Routing_rules:
               - destAddr: 192.168.2.10
               - destAddr: 192.168.2.11
-              Tshark_analyze_captureFilter: icmp && host 10.100.156.10
+              Tshark_analyze_captureFilter: icmp && host 10.100.157.10
               Tshark_analyze_duration: 10000
               Tshark_analyze_files: 1
               Tshark_analyze_interfaceName: eth0
@@ -196,4 +192,7 @@ topology_template:
                 '1':
                   address: 192.168.2.1
                   cidr: 192.168.2.0/24
+      requirements:
+      - host: router_vdu
+      type: tosca.nodes.SoftwareComponent
 tosca_definitions_version: tosca_simple_yaml_1_0
