@@ -1,0 +1,15 @@
+- hosts: localhost
+  tasks:
+    - set_fact:
+          Nat_rules:
+            - destAddrPr: 10.100.157.10/22
+              protocol: ip
+              routingType: snat
+              sourceAddrPr: 192.168.2.10/24
+              typeNat: static
+            - destAddrPr: 10.100.157.11/22
+              protocol: ip
+              routingType: snat
+              sourceAddrPr: 192.168.2.11/24
+              typeNat: static
+    - include: definitions/VNF_types/openflow/Nat.yaml

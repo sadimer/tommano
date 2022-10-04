@@ -1,0 +1,83 @@
+# желательно избавиться от iPAddressDict в будущем!!
+- name: Get info about ip address
+  shell: |
+    ip a | grep eth0 | grep inet | cut -d " " -f 6
+  register: ip_addr
+
+- name: OpenFlow configure
+  shell: |
+    cat > /etc/faucet/faucet.yaml << EOF
+    vlans:
+      external:
+          vid: 4095
+          faucet_vips: ["{{ ip_addr.stdout }}"]
+  become: yes
+
+- name: OpenFlow configure
+  shell: |
+    cat > /etc/faucet/faucet.yaml << EOF
+      internal:
+          vid: 1
+          faucet_vips:
+    EOF
+  become: yes
+  when: iPAddressDict is defined
+
+- name: OpenFlow configure
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+            - "{{ item.value['address'] }}/{{ item.value['cidr'] | ipaddr('prefix') }}"
+    EOF
+  with_dict: "{{ iPAddressDict }}"
+  when: iPAddressDict is defined
+  become: yes
+
+- name: OpenFlow configure
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+    dps:
+      switch-1:
+          dp_id: 0x1
+          interfaces:
+    EOF
+  become: yes
+
+- name: OpenFlow configure
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+              {{ item.key }}:
+                  native_vlan: internal
+    EOF
+  with_dict: "{{ iPAddressDict }}"
+  when: iPAddressDict is defined
+  become: yes
+
+- name: OpenFlow configure
+  shell: |
+    ovs-vsctl add-br br0
+    ovs-vsctl set bridge br0 other-config:datapath-id=0000000000000001
+    ovs-vsctl set-controller br0 tcp:127.0.0.1:6653
+    ovs-vsctl set controller br0 connection-mode=out-of-band
+  become: yes
+
+- name: OpenFlow configure
+  shell: |
+    ovs-vsctl add-port br0 swp{{ item.key }}
+    ovs-vsctl set interface swp{{ item.key }} ofport_request={{ item.key }}
+  with_dict: "{{ iPAddressDict }}"
+  when: iPAddressDict is defined
+  become: yes
+
+- name: Interface configure
+  shell: |
+    ifconfig swp{{ item.key }} up
+  with_dict: "{{ iPAddressDict }}"
+  when: iPAddressDict is defined
+  become: yes
+
+- name: Restart service faucet
+  systemd:
+    state: restarted
+    name: faucet
+  become: yes
+

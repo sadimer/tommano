@@ -109,11 +109,11 @@ nfv.nodes.VnfExtCpd:
   requirements:
      VDUCpd:
         - type: tosca.nodes.network.Port
-          node_name: rename
+          action: rename
           # тут почему то нельзя стало делать ничего кроме rename, странно...
      intVirtualLinkDesc:
         - type: tosca.nodes.network.Network
-          node_name: check
+          action: check
 
 nfv.nodes.VDUCpd:
   properties:
@@ -147,12 +147,12 @@ nfv.nodes.VDUCpd:
   requirements:
      intCpd:
         - type: tosca.nodes.Compute
-          node_name: check
+          action: check
         - type: tosca.nodes.network.Port
           parameter: requirements.[0].binding
      intVirtualLinkDesc:
         - type: tosca.nodes.network.Network
-          node_name: check
+          action: check
         - type: tosca.nodes.network.Port
           parameter: requirements.[0].link
 
@@ -160,10 +160,10 @@ nfv.nodes.VNFD:
   requirements:
     vnfExtCpd:
       - type: tosca.nodes.network.Port
-        node_name: check
+        action: check
     vdu:
       - type: tosca.nodes.Compute
-        node_name: not change
+        action: not change
 
 nfv.nodes.VNFD.DHCP:
    properties:

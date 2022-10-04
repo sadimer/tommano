@@ -30,7 +30,6 @@ class ToscaNormativeTemplate(object):
         self.version - версия TOSCA
         self.mapping - yaml dict маппинга TOSCA_NFV_mapping_nfv.yaml
         self.generated_scripts - dict of lists строк ansible скриптов для настройки compute узлов
-        self.num_addresses - dict в ктором лежит таблица соответствия адресов и compute узлов в формате {host:[address1, address2]}
         self.result_template - итоговой нормативный шаблон TOSCA
         self.new_element_templates - промежуточный dict для обработки сгенерированных шаблонов
         Методы:
@@ -75,6 +74,7 @@ class ToscaNormativeTemplate(object):
         self.new_additional_keys = []
         self.orchestrator = orchestrator
         self.provider = provider
+        self.gen = utils.next_int()
         topology_template = tosca_parser_tpl.topology_template
         self.definitions = topology_template.custom_defs
         self.node_templates = {}
@@ -101,7 +101,6 @@ class ToscaNormativeTemplate(object):
         self.expand_mapping()
         logging.info("Successfully expand types in mapping.")
         self.generated_scripts = {}
-        self.num_addresses = {}
         self.translate_to_tosca()
 
     def get_result(self):
@@ -142,10 +141,8 @@ class ToscaNormativeTemplate(object):
                 else:
                     if 'requirements' in tmp_template[tmpl_name]:
                         address = tmp_template[tmpl_name]['properties']['ip_address']
-                        ext = False
                         for elem in tmp_template[tmpl_name]['requirements']:
                             if 'link' in elem:
-                                ext = False
                                 if 'properties' in self.new_element_templates[elem['link']] and 'cidr' in \
                                         self.new_element_templates[elem['link']]['properties']:
                                     cidr = self.new_element_templates[elem['link']]['properties']['cidr']
@@ -153,46 +150,31 @@ class ToscaNormativeTemplate(object):
                                     logging.error("Error! Network dont have cidr.")
                                     sys.exit(1)
                                 break
-                            else:
-                                ext = True
                         for elem in tmp_template[tmpl_name]['requirements']:
-                            if 'binding' in elem:
-                                if elem['binding'] not in self.num_addresses:
-                                    self.num_addresses[elem['binding']] = [address]
-                                elif address not in self.num_addresses[elem['binding']]:
-                                    self.num_addresses[elem['binding']] += [address]
+                            if 'binding' in elem: # пофиксить!!!!!!!!
+                                if 'properties' in tmp_template[tmpl_name] and \
+                                    'order' in tmp_template[tmpl_name]['properties']:
+                                    next_elem = 1
                                 else:
-                                    break
-                                if ext:
-                                    if self.address_config == 'addresses':
-                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
-                                            self.new_element_templates[elem['binding']],
-                                            {'properties': {'ports': {'external': {'addresses': [address]}}}})
-                                    elif self.address_config == 'port_name':
-                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
-                                            self.new_element_templates[elem['binding']],
-                                            # возможность нескольких айпи - потом сделаю
-                                            {'properties': {'ports': {'external': {'port_name': address}}}})
-                                else:
-                                    if self.address_config == 'addresses':
-                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
-                                            self.new_element_templates[elem['binding']],
-                                            {'properties': {'ports': {'internal': {'addresses': [address]}}}})
-                                    elif self.address_config == 'port_name':
-                                        self.new_element_templates[elem['binding']] = utils.deep_update_dict(
-                                            self.new_element_templates[elem['binding']],
-                                            # возможность нескольких айпи - потом сделаю
-                                            {'properties': {'ports': {'internal': {'port_name': address}}}})
-                                    if self.software_prefix + elem['binding'] not in self.new_element_templates:
-                                        self.new_element_templates[self.software_prefix + elem['binding']] = {}
-                                    self.new_element_templates[
-                                        self.software_prefix + elem['binding']] = utils.deep_update_dict(
-                                        self.new_element_templates[self.software_prefix + elem['binding']],
-                                        {'interfaces': {'Standard': {
-                                            self.script_type: {'inputs': {
-                                                'iPAddressDict': {
-                                                    str(len(self.num_addresses[elem['binding']])): {
-                                                        'address': address, 'cidr': cidr}}}}}}})
+                                    next_elem = next(self.gen)
+                                if self.address_config == 'addresses':
+                                    self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                        self.new_element_templates[elem['binding']],
+                                        {'properties': {'ports': {str(next_elem): {'addresses': [address]}}}})
+                                elif self.address_config == 'port_name':
+                                    self.new_element_templates[elem['binding']] = utils.deep_update_dict(
+                                        self.new_element_templates[elem['binding']],
+                                        {'properties': {'ports': {str(next_elem): {'port_name': address}}}})
+                                if self.software_prefix + elem['binding'] not in self.new_element_templates:
+                                    self.new_element_templates[self.software_prefix + elem['binding']] = {}
+                                self.new_element_templates[
+                                    self.software_prefix + elem['binding']] = utils.deep_update_dict(
+                                    self.new_element_templates[self.software_prefix + elem['binding']],
+                                    {'interfaces': {'Standard': {
+                                        self.script_type: {'inputs': {
+                                            'iPAddressDict': {
+                                                str(next_elem): {
+                                                    'address': address, 'cidr': cidr}}}}}}})
                                 if not self.port_binding_requirement:
                                     tmp_template[tmpl_name]['requirements'].remove(elem)
                                     if len(tmp_template[tmpl_name]['requirements']) == 0:
@@ -354,12 +336,11 @@ class ToscaNormativeTemplate(object):
                                             else:
                                                 logging.error("Error! Undefined node type in template.")
                                                 sys.exit(1)
-
-                                            if 'node_name' in elem:
-                                                if elem['node_name'] == 'check':
+                                            if 'action' in elem:
+                                                if elem['action'] == 'check':
                                                     if iter not in self.new_element_templates:
                                                         logging.warning("Error! The requirement is not defined.")
-                                                elif elem['node_name'] == 'rename':
+                                                elif elem['action'] == 'rename':
                                                     if iter in self.new_element_templates:
                                                         if 'requirement_format' not in elem:
                                                             tmp_template[tmpl_name] = utils.deep_update_dict(
@@ -378,7 +359,42 @@ class ToscaNormativeTemplate(object):
                                                             self.additional_keys += [elem['requirement_format'].format(iter)]
                                                     else:
                                                         logging.warning("Error! The requirement is not defined.")
-                                                elif elem['node_name'] == 'not change':
+                                                elif elem['action'] == 'not change key':
+                                                    if iter in self.new_element_templates:
+                                                        if 'requirement_format' not in elem:
+                                                            if 'format' in elem:
+                                                                self.new_element_templates[iter] = utils.deep_update_dict(
+                                                                    self.new_element_templates[iter],
+                                                                    utils.str_dots_to_dict(elem['parameter'], elem['format'].format(iter)))
+                                                            else:
+                                                                self.new_element_templates[
+                                                                    iter] = utils.deep_update_dict(
+                                                                    self.new_element_templates[iter],
+                                                                    utils.str_dots_to_dict(elem['parameter'], iter))
+                                                        else:
+                                                            if elem['requirement_format'].format(
+                                                                    iter) not in self.new_element_templates:
+                                                                self.new_element_templates[
+                                                                    elem['requirement_format'].format(iter)] = {}
+                                                            if 'format' in elem:
+                                                                self.new_element_templates[
+                                                                    elem['requirement_format'].format(
+                                                                        iter)] = utils.deep_update_dict(
+                                                                    self.new_element_templates[
+                                                                        elem['requirement_format'].format(iter)],
+                                                                    utils.str_dots_to_dict(elem['parameter'], elem['format'].format(iter)))
+                                                            else:
+                                                                self.new_element_templates[
+                                                                    elem['requirement_format'].format(
+                                                                        iter)] = utils.deep_update_dict(
+                                                                    self.new_element_templates[
+                                                                        elem['requirement_format'].format(iter)],
+                                                                    utils.str_dots_to_dict(elem['parameter'], iter))
+                                                        self.new_additional_keys += [tmpl_name]
+                                                        self.new_element_templates = self.translate_specific_types(self.new_element_templates, iter)
+                                                    else:
+                                                        logging.warning("Error! The requirement is not defined.")
+                                                elif elem['action'] == 'not change':
                                                     if iter in self.new_element_templates:
                                                         if 'requirement_format' not in elem:
                                                             self.new_element_templates[iter] = utils.deep_update_dict(
@@ -399,7 +415,7 @@ class ToscaNormativeTemplate(object):
                                                     else:
                                                         logging.warning("Error! The requirement is not defined.")
                                                 else:
-                                                    logging.warning("Error! unknown type of node_name.")
+                                                    logging.warning("Error! unknown type of action.")
 
                         self.new_element_templates = utils.deep_update_dict(self.new_element_templates,
                                                                             self.translate_specific_types(tmp_template,

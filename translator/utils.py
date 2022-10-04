@@ -81,3 +81,10 @@ def generate_random_subnet():
         addr2 = get_random_int(0, 255)
         addr1 = 10
     return str(addr1) + '.' + str(addr2) + '.' + str(addr3) + '.0/24'
+
+
+def next_int():
+    i = 1
+    while True:
+        i += 1
+        yield i

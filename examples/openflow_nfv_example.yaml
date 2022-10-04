@@ -1,0 +1,142 @@
+tosca_definitions_version: tosca_simple_yaml_1_0
+
+topology_template:
+  node_templates:
+    router_vdu:
+      type: nfv.nodes.VDU
+      properties:
+        vduId: vdu_0
+        name: router
+        virtualComputeDesc:
+          virtualComputeDescId: vc_0
+          virtualCpu:
+            numVirtualCpu: 1
+          virtualMemory:
+            virtualMemSize: 2048 MiB
+        virtualStorageDesc:
+          id: sd_0
+          typeOfStorage: object
+          sizeOfStorage: 50 GiB
+        swImageDesc:
+          id: sw_0
+          minDisk: 20 GiB
+          size: 2.55 GiB
+          operatingSystem: cumulus_openflow
+          diskFormat: qcow2
+          containerFormat: BARE
+
+    internal_vl:
+      type: nfv.nodes.VnfVirtualLinkDesc
+      properties:
+        virtualLinkDescId: vl_0
+        connectivityType:
+          layerProtocol: IPV4
+        virtualLinkDescFlavour:
+          flavourId: fl_vl_0
+        cidrData:
+          networkName: my_net
+          cidr: 192.168.2.0/24
+          startIp: 192.168.2.2
+          endIp: 192.168.2.100
+          gatewayIp: 192.168.2.1
+          networkType: geneve
+          dhcpEnabled: false
+
+    external_vl:
+      type: nfv.nodes.VnfVirtualLinkDesc
+      properties:
+        virtualLinkDescId: vl_0
+        connectivityType:
+          layerProtocol: IPV4
+        virtualLinkDescFlavour:
+          flavourId: fl_vl_0
+        cidrData:
+          networkName: vlan452
+          cidr: 10.100.156.0/22
+          startIp: 10.100.157.1
+          endIp: 10.100.157.253
+          gatewayIp: 10.100.159.254
+          networkType: vlan
+          physicalNetwork: datacentre
+          dhcpEnabled: true
+          segmentationId: 452
+
+    gateway_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+        layerProtocol: { get_property: [ internal_vl, connectivityType, layerProtocol ] }
+        addressData:
+          addressType: IP
+          l3AddressData:
+            iPAddressAssignment: true
+            iPAddress: 192.168.2.1
+            floatingIpActivated: false
+            iPAddressType: IPV4
+            numberOfIpAddress: 1
+      requirements:
+        - intCpd: router_vdu
+        - intVirtualLinkDesc: internal_vl
+
+    ext_gateway_cpd:
+      type: nfv.nodes.VnfExtCpd
+      properties:
+        cpdId: cpd_0
+      requirements:
+        - VDUCpd: gateway_cpd
+        - intVirtualLinkDesc: internal_vl
+
+    external_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+        layerProtocol: IPV4
+        addressData:
+          addressType: IP
+          l3AddressData:
+            iPAddressAssignment: true
+            iPAddress: 10.100.157.40
+            floatingIpActivated: false
+            iPAddressType: IPV4
+            numberOfIpAddress: 1
+      requirements:
+        - intCpd: router_vdu
+        - intVirtualLinkDesc: external_vl
+
+    mgmt_cpd:
+      type: nfv.nodes.VDUCpd
+      properties:
+        cpdId: cpd_0
+        layerProtocol: IPV4
+        addressData:
+          addressType: IP
+          l3AddressData:
+            iPAddressAssignment: true
+            iPAddress: 10.100.157.41 # нужно сделать лист и поддержку нескольких адресов
+            floatingIpActivated: false
+            iPAddressType: IPV4
+            numberOfIpAddress: 1
+      requirements:
+        - intCpd: router_vdu
+        - intVirtualLinkDesc: external_vl
+
+    nat:
+      type: nfv.nodes.VNFD.Nat
+      properties:
+        modifiableAttributes:
+          extension:
+            rules:
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.10/24
+                destAddrPr: 10.100.157.10/22
+                protocol: ip
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 192.168.2.11/24
+                destAddrPr: 10.100.157.11/22
+                protocol: ip
+      requirements:
+        - vnfExtCpd: ext_gateway_cpd
+        - vdu: router_vdu
+        - mgmtCp: mgmt_cpd

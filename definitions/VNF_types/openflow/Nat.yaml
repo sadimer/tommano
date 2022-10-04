@@ -1,0 +1,197 @@
+- set_fact:
+    proto:
+      ip:
+        eth_type: '0x0800'
+      ipv6:
+        eth_type: '0x86dd'
+      icmp:
+        eth_type: '0x0800'
+        ip_proto: 1
+      icmp6:
+        eth_type: '0x86dd'
+        ip_proto: 58
+      tcp:
+        eth_type: '0x0800'
+        ip_proto: 6
+      tcp6:
+        eth_type: '0x86dd'
+        ip_proto: 6
+      udp:
+        eth_type: '0x0800'
+        ip_proto: 17
+      udp6:
+        eth_type: '0x86dd'
+        ip_proto: 17
+      sctp:
+        eth_type: '0x0800'
+        ip_proto: 132
+      sctp6:
+        eth_type: '0x86dd'
+        ip_proto: 132
+      arp:
+        eth_type: '0x0806'
+      rarp:
+        eth_type: '0x8035'
+      mpls:
+        eth_type: '0x8847'
+      mplsm:
+        eth_type: '0x8848'
+
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+    acls:
+        nat:
+             - rule:
+                eth_type: {{ proto['arp']['eth_type'] }}
+                actions:
+                    allow: True
+    EOF
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ip_proto: {{ proto[ item.protocol ]['ip_proto'] }}
+                ct_state: 0/0x20
+                actions:
+                    ct:
+                        zone: 10
+                        table: 0
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is defined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ct_state: 0/0x20
+                actions:
+                    ct:
+                        zone: 10
+                        table: 0
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is undefined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ip_proto: {{ proto[ item.protocol ]['ip_proto'] }}
+                ipv4_src: {{ item.sourceAddrPr | ipaddr('address') }}
+                ct_state: 0x21/0x21
+                actions:
+                    ct:
+                        zone: 10
+                        flags: 1
+                        table: 1
+                        nat:
+                            flags: 1
+                            range_ipv4_min: {{ item.destAddrPr | ipaddr('address') }}
+                            range_ipv4_max: {{ item.destAddrPr | ipaddr('address') }}
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is defined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ipv4_src: {{ item.sourceAddrPr | ipaddr('address') }}
+                ct_state: 0x21/0x21
+                actions:
+                    ct:
+                        zone: 10
+                        flags: 1
+                        table: 1
+                        nat:
+                            flags: 1
+                            range_ipv4_min: {{ item.destAddrPr | ipaddr('address') }}
+                            range_ipv4_max: {{ item.destAddrPr | ipaddr('address') }}
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is undefined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ip_proto: {{ proto[ item.protocol ]['ip_proto'] }}
+                ct_zone: 10
+                ct_state: 0x22/0x22
+                actions:
+                    ct:
+                        zone: 10
+                        flags: 1
+                        table: 1
+                        nat:
+                            flags: 1
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is defined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ct_zone: 10
+                ct_state: 0x22/0x22
+                actions:
+                    ct:
+                        zone: 10
+                        flags: 1
+                        table: 1
+                        nat:
+                            flags: 1
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is undefined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ip_proto: {{ proto[ item.protocol ]['ip_proto'] }}
+                ipv4_src: {{ item.sourceAddrPr | ipaddr('address') }}
+                actions:
+                    allow: False
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is defined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Configure openvswitch Nat
+  shell: |
+    cat >> /etc/faucet/faucet.yaml << EOF
+             - rule:
+                eth_type: {{ proto[ item.protocol ]['eth_type'] }}
+                ipv4_src: {{ item.sourceAddrPr | ipaddr('address') }}
+                actions:
+                    allow: False
+    EOF
+  when: Nat_rules is defined and proto[ item.protocol ]['ip_proto'] is undefined
+  with_items: "{{ Nat_rules }}"
+  become: yes
+
+- name: Restart service faucet
+  systemd:
+    state: restarted
+    name: faucet
+  become: yes

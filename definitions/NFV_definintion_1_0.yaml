@@ -90,6 +90,11 @@ node_types:
           node: nfv.nodes.VDU
           relationships: nfv.relationships.vdu
           occurrences: [ 1, UNBOUNDED ]
+      - mgmtCp:
+          capability: nfv.capabilities.mgmtCp
+          node: nfv.nodes.VDUCpd
+          relationships: nfv.relationships.mgmtCp
+          occurrences: [ 1, UNBOUNDED ]
     
   nfv.nodes.VDU:
     derived_from: tosca.nodes.Root
@@ -141,6 +146,8 @@ node_types:
     capabilities:
       vnfExtCpdDep:
         type: nfv.capabilities.vnfExtCpd
+      mgmtCp:
+        type: nfv.capabilities.mgmtCp
     requirements:
       - VDUCpd: 
           capability: nfv.capabilities.intCpd
@@ -209,7 +216,7 @@ data_types:
         required: true
       cpuArchitecture:
         type: string
-        required: true
+        required: false
         constraints:
           - valid_values: [ x86, x86_64, arm ]
           
@@ -346,7 +353,16 @@ data_types:
         type: string
         default: geneve
         constraints:
-          - valid_values: [ geneve, VLAN ]
+          - valid_values: [ geneve, vlan, vxlan, gre ]
+      segmentationId:
+        type: integer
+        required: false
+      dhcpEnabled:
+        type: boolean
+        default: false
+      physicalNetwork:
+        type: string
+        required: false
         
   nfv.datatypes.VirtualNetworkInterfaceRequirements:
     derived_from: tosca.datatypes.Root
@@ -533,7 +549,7 @@ data_types:
         type: string
         required: true
         constraints:
-          - valid_values: [ tcp, udp, icmp ]
+          - valid_values: [ tcp, udp, icmp, ip, mplsm, mpls, rarp, arp, sctp6, sctp, udp6, tcp6, icmp6, ipv6 ]
           
   nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall:
     derived_from: nfv.datatypes.VnfInfoModifiableAttributes.extension
@@ -785,6 +801,9 @@ data_types:
         required: true
       
 capability_types:
+  nfv.capabilities.mgmtCp:
+    derived_from: tosca.capabilities.Node
+
   nfv.capabilities.intCpd:
     derived_from: tosca.capabilities.network.Bindable
 
@@ -813,3 +832,7 @@ relationship_types:
   nfv.relationships.vnfExtCpd:
     derived_from: tosca.relationships.DependsOn
     valid_target_types: [ nfv.capabilities.vnfExtCpd ]
+
+  nfv.relationships.mgmtCp:
+    derived_from: tosca.relationships.DependsOn
+    valid_target_types: [ nfv.capabilities.mgmtCp ]

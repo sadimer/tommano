@@ -74,7 +74,7 @@ class TranslatorCli(object):
                             help='Translate to template supported by specific orchestrator')
         parser.add_argument('--provider',
                             default='cumulus',
-                            choices=['cumulus'],
+                            choices=['cumulus', 'openflow'],
                             help='Translate to template supported by specific vnf provider')
         return parser
 

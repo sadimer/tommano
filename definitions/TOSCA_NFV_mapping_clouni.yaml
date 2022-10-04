@@ -90,6 +90,15 @@ nfv.nodes.VnfVirtualLinkDesc:
       cidrData.gatewayIp:
         - parameter: properties.gateway_ip
           type: tosca.nodes.network.Network
+      cidrData.physicalNetwork:
+        - parameter: properties.physical_network
+          type: tosca.nodes.network.Network
+      cidrData.dhcpEnabled:
+        - parameter: properties.dhcp_enabled
+          type: tosca.nodes.network.Network
+      cidrData.segmentationId:
+        - parameter: properties.segmentation_id
+          type: tosca.nodes.network.Network
       cidrData.networkType:
         - parameter: properties.network_type
           type: tosca.nodes.network.Network
@@ -103,11 +112,11 @@ nfv.nodes.VnfExtCpd:
   requirements:
      VDUCpd:
         - type: tosca.nodes.network.Port
-          node_name: rename
+          action: rename
           # тут почему то нельзя стало делать ничего кроме rename, странно...
      intVirtualLinkDesc:
         - type: tosca.nodes.network.Network
-          node_name: check
+          action: check
 
 nfv.nodes.VDUCpd:
   properties:
@@ -141,12 +150,12 @@ nfv.nodes.VDUCpd:
   requirements:
      intCpd:
         - type: tosca.nodes.Compute
-          node_name: check
+          action: check
         - type: tosca.nodes.network.Port
           parameter: requirements.[0].binding
      intVirtualLinkDesc:
         - type: tosca.nodes.network.Network
-          node_name: check
+          action: check
         - type: tosca.nodes.network.Port
           parameter: requirements.[0].link
 
@@ -154,12 +163,17 @@ nfv.nodes.VNFD:
   requirements:
     vnfExtCpd:
       - type: tosca.nodes.network.Port
-        node_name: check
+        action: check
     vdu:
       - type: tosca.nodes.SoftwareComponent
         requirement_format: "software_for_{}"
         parameter: requirements.[0].host
-        node_name: not change
+        action: not change
+    mgmtCp:
+      - type: tosca.nodes.network.Port
+        parameter: properties.order
+        format: "1"
+        action: not change key
 
 nfv.nodes.VNFD.DHCP:
    properties:
