@@ -1,21 +1,9 @@
 # желательно избавиться от iPAddressDict в будущем!!
-- name: Get info about ip address
-  shell: |
-    ip a | grep eth0 | grep inet | cut -d " " -f 6
-  register: ip_addr
 
 - name: OpenFlow configure
   shell: |
     cat > /etc/faucet/faucet.yaml << EOF
     vlans:
-      external:
-          vid: 4095
-          faucet_vips: ["{{ ip_addr.stdout }}"]
-  become: yes
-
-- name: OpenFlow configure
-  shell: |
-    cat > /etc/faucet/faucet.yaml << EOF
       internal:
           vid: 1
           faucet_vips:

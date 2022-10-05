@@ -140,3 +140,50 @@ topology_template:
         - vnfExtCpd: ext_gateway_cpd
         - vdu: router_vdu
         - mgmtCp: mgmt_cpd
+
+    port_0:
+      type: tosca.nodes.network.Port
+      properties:
+        ip_address: 192.168.2.10
+      requirements:
+        - link: internal_vl
+
+    port_1:
+      type: tosca.nodes.network.Port
+      properties:
+        ip_address: 192.168.2.11
+      requirements:
+        - link: internal_vl
+
+    custom_server_0:
+      type: tosca.nodes.Compute
+      properties:
+        ports:
+          internal:
+            port_name: { get_property: [ port_0, ip_address ] }
+      capabilities:
+        host:
+          properties:
+            num_cpus: 1
+            disk_size: 50 GiB
+            mem_size: 2048 MiB
+        os:
+          properties:
+            architecture: x86_64
+            type: cumulus
+
+    custom_server_1:
+      type: tosca.nodes.Compute
+      properties:
+        ports:
+          internal:
+            port_name: { get_property: [ port_1, ip_address ] }
+      capabilities:
+        host:
+          properties:
+            num_cpus: 1
+            disk_size: 50 GiB
+            mem_size: 2048 MiB
+        os:
+          properties:
+            type: cumulus

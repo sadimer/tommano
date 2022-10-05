@@ -151,10 +151,11 @@ class ToscaNormativeTemplate(object):
                                     sys.exit(1)
                                 break
                         for elem in tmp_template[tmpl_name]['requirements']:
-                            if 'binding' in elem: # пофиксить!!!!!!!!
+                            if 'binding' in elem:
                                 if 'properties' in tmp_template[tmpl_name] and \
                                     'order' in tmp_template[tmpl_name]['properties']:
-                                    next_elem = 1
+                                    next_elem = 0
+                                    del tmp_template[tmpl_name]['properties']['order']
                                 else:
                                     next_elem = next(self.gen)
                                 if self.address_config == 'addresses':
@@ -167,14 +168,15 @@ class ToscaNormativeTemplate(object):
                                         {'properties': {'ports': {str(next_elem): {'port_name': address}}}})
                                 if self.software_prefix + elem['binding'] not in self.new_element_templates:
                                     self.new_element_templates[self.software_prefix + elem['binding']] = {}
-                                self.new_element_templates[
-                                    self.software_prefix + elem['binding']] = utils.deep_update_dict(
-                                    self.new_element_templates[self.software_prefix + elem['binding']],
-                                    {'interfaces': {'Standard': {
-                                        self.script_type: {'inputs': {
-                                            'iPAddressDict': {
-                                                str(next_elem): {
-                                                    'address': address, 'cidr': cidr}}}}}}})
+                                if next_elem > 0:
+                                    self.new_element_templates[
+                                        self.software_prefix + elem['binding']] = utils.deep_update_dict(
+                                        self.new_element_templates[self.software_prefix + elem['binding']],
+                                        {'interfaces': {'Standard': {
+                                            self.script_type: {'inputs': {
+                                                'iPAddressDict': {
+                                                    str(next_elem): {
+                                                        'address': address, 'cidr': cidr}}}}}}})
                                 if not self.port_binding_requirement:
                                     tmp_template[tmpl_name]['requirements'].remove(elem)
                                     if len(tmp_template[tmpl_name]['requirements']) == 0:
@@ -391,7 +393,6 @@ class ToscaNormativeTemplate(object):
                                                                         elem['requirement_format'].format(iter)],
                                                                     utils.str_dots_to_dict(elem['parameter'], iter))
                                                         self.new_additional_keys += [tmpl_name]
-                                                        self.new_element_templates = self.translate_specific_types(self.new_element_templates, iter)
                                                     else:
                                                         logging.warning("Error! The requirement is not defined.")
                                                 elif elem['action'] == 'not change':
@@ -417,11 +418,10 @@ class ToscaNormativeTemplate(object):
                                                 else:
                                                     logging.warning("Error! unknown type of action.")
 
-                        self.new_element_templates = utils.deep_update_dict(self.new_element_templates,
-                                                                            self.translate_specific_types(tmp_template,
-                                                                                                          tmpl_name))
+                        self.new_element_templates = utils.deep_update_dict(self.new_element_templates, tmp_template)
                         logging.info("Successfully parsed {} node.".format(tmpl_name))
         for key in self.new_element_templates:
+            self.new_element_templates = self.translate_specific_types(self.new_element_templates, key)
             if key in element_templates:
                 element_templates.pop(key)
         for key in self.additional_keys:

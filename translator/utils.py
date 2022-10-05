@@ -84,7 +84,7 @@ def generate_random_subnet():
 
 
 def next_int():
-    i = 1
+    i = 0
     while True:
         i += 1
         yield i
