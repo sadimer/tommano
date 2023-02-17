@@ -13,7 +13,8 @@ nfv.nodes.VDU:
           parameter: capabilities.host.properties.num_cpus
       virtualComputeDesc.virtualCpu.cpuArchitecture:
         - type: tosca.nodes.Compute
-          parameter: capabilities.os.properties.architecture
+          # временно
+          # parameter: capabilities.os.properties.architecture
       virtualComputeDesc.virtualMemory.virtualMemSize:
         - type: tosca.nodes.Compute
           parameter: capabilities.host.properties.mem_size

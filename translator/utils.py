@@ -5,7 +5,6 @@ from time import time
 from itertools import groupby
 
 
-
 def get_project_root_path():
     return os.path.dirname(os.path.dirname(__file__))
 
@@ -28,15 +27,15 @@ def tosca_type_parse(_type):
 
 
 def str_dots_to_dict(str, param):
-    arr = str.split('.')[::-1]
+    arr = str.split(".")[::-1]
     res = {}
     new_res = {}
-    if arr[0] != '[0]' and arr[0] != '0' and arr[0] != '[]':
+    if arr[0] != "[0]" and arr[0] != "0" and arr[0] != "[]":
         res[arr[0]] = param
     else:
         res = [param]
     for i in range(1, len(arr)):
-        if arr[i] != '[0]' and arr[i] != '0' and arr[i] != '[]':
+        if arr[i] != "[0]" and arr[i] != "0" and arr[i] != "[]":
             new_res[arr[i]] = res
         else:
             new_res = [res]
@@ -46,10 +45,10 @@ def str_dots_to_dict(str, param):
 
 
 def str_dots_to_arr(str):
-    return str.split('.')
+    return str.split(".")
 
 
-def deep_update_dict(source, overrides):
+def deep_update_dict(source, overrides, update_lists=True):
     assert isinstance(source, dict)
     assert isinstance(overrides, dict)
 
@@ -59,7 +58,7 @@ def deep_update_dict(source, overrides):
         elif isinstance(v, (list, set, tuple)) and isinstance(source.get(k), type(v)):
             type_save = type(v)
             source[k] = type_save(itertools.chain(iter(source[k]), iter(v)))
-            if isinstance(source[k], list):
+            if isinstance(source[k], list) and update_lists:
                 tmp = []
                 [tmp.append(x) for x in source[k] if x not in tmp]
                 source[k] = tmp
@@ -80,4 +79,4 @@ def generate_random_subnet():
     else:
         addr2 = get_random_int(0, 255)
         addr1 = 10
-    return str(addr1) + '.' + str(addr2) + '.' + str(addr3) + '.0/24'
+    return str(addr1) + "." + str(addr2) + "." + str(addr3) + ".0/24"

@@ -1,0 +1,17 @@
+controller:
+  name: controller
+  user: admin
+  password: admin
+  ip-address: "10.100.157.52"
+  port: "8181"
+vnf_types:
+  Nat: napt44
+  Ntop_analyze: napt44
+  Tshark_analyze: napt44
+  Routing: Cisco-vASA
+  Firewall: firewall
+  DPI: dpi
+  QoS: qos
+  SpamVirus: ids
+  DHCP: error
+  DNS: error
