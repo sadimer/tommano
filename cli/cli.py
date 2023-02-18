@@ -37,7 +37,7 @@ class TranslatorCli(object):
             os.makedirs(self.output_dir)
         self.validate_only = args.validate_only
         self.log_level = args.log_level
-        self.output_dict, self.generated_scripts = translate(
+        self.output_dict, self.basic_scripts, self.vnf_scripts = translate(
             self.template_file,
             self.validate_only,
             self.controller,
@@ -46,16 +46,17 @@ class TranslatorCli(object):
             self.output_dir,
             self.log_level,
         )
+        self.basic_scripts.update(self.vnf_scripts)
         if self.output_dir:
             with open(self.output_dir + TOPOLOGY_TPL_NAME, "w+") as f:
                 yaml.dump(self.output_dict, f)
-            for key, script in self.generated_scripts.items():
+            for key, script in self.basic_scripts.items():
                 with open(self.output_dir + "/" + key, "w+") as ouf:
                     for line in script:
                         print(line, file=ouf, end="")
         else:
             print(yaml.dump(self.output_dict))
-            for key, script in self.generated_scripts.items():
+            for key, script in self.basic_scripts.items():
                 print("\n" + key + ":")
                 for line in script:
                     print(line, end="")

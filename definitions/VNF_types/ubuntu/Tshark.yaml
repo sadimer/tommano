@@ -2,7 +2,7 @@
   shell: |
     cat > /usr/bin/myshark << EOF
     #!/bin/bash
-    tshark -b duration:{{ Tshark_analyze_duration }} -b files:{{ Tshark_analyze_files }} -f "{{ Tshark_analyze_captureFilter }}" -w {{ Tshark_analyze_pathToPcap }} -i {{ Tshark_analyze_interfaceName }}
+    ip netns exec sfc tshark -b duration:{{ Tshark_analyze_duration }} -b files:{{ Tshark_analyze_files }} -f "{{ Tshark_analyze_captureFilter }}" -w {{ Tshark_analyze_pathToPcap }} -i {{ Tshark_analyze_interfaceName }}
     EOF
   become: yes
   when: Tshark_analyze_captureFilter is defined

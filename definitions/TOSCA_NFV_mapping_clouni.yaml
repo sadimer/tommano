@@ -166,126 +166,126 @@ nfv.nodes.VNFD.DHCP:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.implementation
+          parameter: interfaces.Standard.configure.implementation
           format: "VNF_types/DHCP.yaml"
       modifiableAttributes.extension.defaultLeaseTime:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_defaultLeaseTime
+          parameter: interfaces.Standard.configure.inputs.DHCP_defaultLeaseTime
       modifiableAttributes.extension.maxLeaseTime:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_maxLeaseTime
+          parameter: interfaces.Standard.configure.inputs.DHCP_maxLeaseTime
       modifiableAttributes.extension.interfaceName:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_interfaceName
+          parameter: interfaces.Standard.configure.inputs.DHCP_interfaceName
       modifiableAttributes.extension.internalNetCidr:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_internalNetCidr
+          parameter: interfaces.Standard.configure.inputs.DHCP_internalNetCidr
       modifiableAttributes.extension.gateway:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_gateway
+          parameter: interfaces.Standard.configure.inputs.DHCP_gateway
       modifiableAttributes.extension.rangeStart:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_rangeStart
+          parameter: interfaces.Standard.configure.inputs.DHCP_rangeStart
       modifiableAttributes.extension.rangeEnd:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_rangeEnd
+          parameter: interfaces.Standard.configure.inputs.DHCP_rangeEnd
       modifiableAttributes.extension.staticHosts:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DHCP_staticHosts
+          parameter: interfaces.Standard.configure.inputs.DHCP_staticHosts
 
 
 nfv.nodes.VNFD.DNS:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.implementation
+          parameter: interfaces.Standard.configure.implementation
           format: "VNF_types/DNS.yaml"
       modifiableAttributes.extension.internalNetAddr:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DNS_internalNetAddr
+          parameter: interfaces.Standard.configure.inputs.DNS_internalNetAddr
       modifiableAttributes.extension.staticHosts:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DNS_staticHosts
+          parameter: interfaces.Standard.configure.inputs.DNS_staticHosts
       modifiableAttributes.extension.domainName:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DNS_domainName
+          parameter: interfaces.Standard.configure.inputs.DNS_domainName
       modifiableAttributes.extension.forwarders:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DNS_forwarders
+          parameter: interfaces.Standard.configure.inputs.DNS_forwarders
       modifiableAttributes.extension.iPAddressType:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.DNS_iPAddressType
+          parameter: interfaces.Standard.configure.inputs.DNS_iPAddressType
 
 nfv.nodes.VNFD.Firewall:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.implementation
+          parameter: interfaces.Standard.configure.implementation
           format: "VNF_types/Firewall.yaml"
-      modifiableAttributes.extension.standart_rules:
+      modifiableAttributes.extension.standard_rules:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Firewall_standart_rules
+          parameter: interfaces.Standard.configure.inputs.Firewall_standard_rules
       modifiableAttributes.extension.dpi_rules:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Firewall_dpi_rules
+          parameter: interfaces.Standard.configure.inputs.Firewall_dpi_rules
 
 nfv.nodes.VNFD.Nat:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.implementation
+          parameter: interfaces.Standard.configure.implementation
           format: "VNF_types/Nat.yaml"
       modifiableAttributes.extension.rules:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Nat_rules
+          parameter: interfaces.Standard.configure.inputs.Nat_rules
 
 nfv.nodes.VNFD.Ntop_analyze:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.implementation
+          parameter: interfaces.Standard.configure.implementation
           format: "VNF_types/Ntop.yaml"
       modifiableAttributes.extension.endpointPort:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Ntop_analyze_endpointPort
+          parameter: interfaces.Standard.configure.inputs.Ntop_analyze_endpointPort
       modifiableAttributes.extension.internalNetCidr:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Ntop_analyze_internalNetCidr
+          parameter: interfaces.Standard.configure.inputs.Ntop_analyze_internalNetCidr
       modifiableAttributes.extension.interfacesNames:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Ntop_analyze_interfacesNames
+          parameter: interfaces.Standard.configure.inputs.Ntop_analyze_interfacesNames
 
 nfv.nodes.VNFD.Tshark_analyze:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.implementation
+          parameter: interfaces.Standard.configure.implementation
           format: "VNF_types/Tshark.yaml"
       modifiableAttributes.extension.duration:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Tshark_analyze_duration
+          parameter: interfaces.Standard.configure.inputs.Tshark_analyze_duration
       modifiableAttributes.extension.files:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Tshark_analyze_files
+          parameter: interfaces.Standard.configure.inputs.Tshark_analyze_files
       modifiableAttributes.extension.pathToPcap:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Tshark_analyze_pathToPcap
+          parameter: interfaces.Standard.configure.inputs.Tshark_analyze_pathToPcap
       modifiableAttributes.extension.interfaceName:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Tshark_analyze_interfaceName
+          parameter: interfaces.Standard.configure.inputs.Tshark_analyze_interfaceName
       modifiableAttributes.extension.captureFilter:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Tshark_analyze_captureFilter
+          parameter: interfaces.Standard.configure.inputs.Tshark_analyze_captureFilter
 
 nfv.nodes.VNFD.Routing:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.implementation
+          parameter: interfaces.Standard.configure.implementation
           format: "VNF_types/Routing.yaml"
       modifiableAttributes.extension.rules:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Routing_rules
+          parameter: interfaces.Standard.configure.inputs.Routing_rules
       modifiableAttributes.extension.routes:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.create.inputs.Routing_routes
+          parameter: interfaces.Standard.configure.inputs.Routing_routes

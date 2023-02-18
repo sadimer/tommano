@@ -383,7 +383,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_nodes_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]
@@ -404,7 +406,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_functions_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]
@@ -426,7 +430,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_function_forwarders_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]
@@ -447,7 +453,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_function_metadata_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]
@@ -468,7 +476,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_function_chains_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]
@@ -489,7 +499,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_function_paths_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]
@@ -518,14 +530,15 @@ def generate_restconf_files_for_create(json_data, output_dir):
                                 "user": gInput["controller"]["user"],
                                 "password": gInput["controller"]["password"],
                                 "body": json.dumps(rsps),
-                                "body_format": "json","method": "POST", "status_code": [201, 200]
+                                "body_format": "json",
+                                "method": "POST",
+                                "status_code": [201, 200],
                             },
                         }
                     ]
                 ),
                 file=op_fp,
             )
-
         print(
             yaml.dump(
                 [
@@ -540,7 +553,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_function_acl_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]
@@ -563,7 +578,9 @@ def generate_restconf_files_for_create(json_data, output_dir):
                             "user": gInput["controller"]["user"],
                             "password": gInput["controller"]["password"],
                             "body": json.dumps(get_service_function_classifiers_data()),
-                            "body_format": "json","method": "PUT", "status_code": [201, 200]
+                            "body_format": "json",
+                            "method": "PUT",
+                            "status_code": [201, 200],
                         },
                     }
                 ]

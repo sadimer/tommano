@@ -1,4 +1,0 @@
-configure_node_type: tosca.nodes.Compute
-script_type: configure
-address_config: addresses
-port_binding_requirement: true
