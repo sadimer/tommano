@@ -1,3 +1,15 @@
+- name: Install Ntop # TODO: переписать на ансибл
+  shell: |
+    apt-get update -y
+    apt-get install software-properties-common wget gnupg -y
+    add-apt-repository universe
+    wget https://packages.ntop.org/apt/20.04/all/apt-ntop.deb
+    apt install ./apt-ntop.deb
+    apt-get update -y
+    apt-get install pfring-dkms nprobe ntopng n2disk cento -y
+  become: yes
+  when: Ntop_analyze_endpointPort is defined
+
 - name: Ntop VNFD
   shell: |
     cat > /run/ntopng.conf << EOF

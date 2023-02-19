@@ -54,6 +54,12 @@
   when: Firewall_standard_rules is defined and (item.protocol != "udp" and item.protocol != "tcp") and item.sourceAddr is not defined and item.destAddr is not defined
   become: yes
 
+- name: Install DPI
+  shell: |
+
+  when: Firewall_dpi_rules is defined
+  become: yes
+
 - name: DPI VNFD
   shell: |
     ip netns exec sfc iptables -A {{ item.routingPath }} -m ndpi --{{ item.deepProtocol }} -j {{ item.action }} -s {{ item.sourceAddr }} -d {{ item.destAddr }}

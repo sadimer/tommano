@@ -14,6 +14,7 @@ TRANS_PATH = "/translator/"
 ORCHECTRATOR_PATH = "/definitions/Orchestrator_configs/"
 CONTROLLER_PATH = "/definitions/Controller_configs/"
 VNF_PATH = DEF_PATH + "/VNF_types/"
+ADD_PATH = DEF_PATH + "/Additional_types/"
 PROVIDERS_PATH = DEF_PATH + "/Provider_types/"
 
 SEPARATOR = "."
@@ -106,6 +107,7 @@ class ToscaNormativeTemplate(object):
             file_dump = yaml.load(f, Loader=yaml.SafeLoader)
             self.controller = file_dump["controller"]
             self.vnf_mapping = file_dump["vnf_types"]
+            self.tosca_controller = file_dump["tosca"]
 
         self.basic_script_type = orc["basic_script_type"]
         self.basic_configure_node_type = orc["basic_configure_node_type"]
@@ -473,7 +475,6 @@ class ToscaNormativeTemplate(object):
         odl_config = {
             "service-function-path": "to be auto created from service-function-chains",
             "rendered-service-path": "to be auto created from service-function-chains and service-function-path",
-            "controller": self.controller,
         }
         sf_addresses = []
         sff_addresses = []
@@ -675,17 +676,123 @@ class ToscaNormativeTemplate(object):
                                                 },
                                             )
                     if req.get("virtualLinkDesc"):
-                        virtual_link = self.node_templates.get(req["virtualLinkDesc"])
+                        start = int(
+                            ipaddress.IPv4Address(
+                                self.new_element_templates[req["virtualLinkDesc"]][
+                                    "properties"
+                                ]["start_ip"]
+                            )
+                        )
+                        end = int(
+                            ipaddress.IPv4Address(
+                                self.new_element_templates[req["virtualLinkDesc"]][
+                                    "properties"
+                                ]["end_ip"]
+                            )
+                        )
+                        address = str(
+                            ipaddress.IPv4Address(utils.get_random_int(start, end))
+                        )  # нет защиты от совпадений
+                        # TODO: сделать
+                        utils.deep_update_dict(self.controller, {"ip-address": address})
+                        utils.deep_update_dict(
+                            odl_config, {"controller": self.controller}
+                        )
+                        if self.address_config == "port_name":
+                            utils.deep_update_dict(
+                                self.tosca_controller["controller"],
+                                {
+                                    "properties": {
+                                        "ports": {"internal_1": {"port_name": address}}
+                                    }
+                                },
+                            )
+                        elif self.address_config == "addresses":
+                            utils.deep_update_dict(
+                                self.tosca_controller["controller"],
+                                {
+                                    "properties": {
+                                        "ports": {
+                                            "internal_1": {"addresses": [address]}
+                                        }
+                                    }
+                                },
+                            )
+                        else:
+                            logging.error(
+                                "Unknown address_config type in orchestrator config."
+                            )
+                            sys.exit(1)
+                        utils.deep_update_dict(
+                            self.tosca_controller["controller_port"],
+                            {
+                                "properties": {"ip_address": address},
+                                "requirements": [{"link": req["virtualLinkDesc"]}],
+                            },
+                        )
         map_sf_sff = self.split_sf_sff(sf_addresses, sff_addresses)
+        inverse_map_sf_sff = {}
+        for key, value in map_sf_sff.items():
+            for elem in value:
+                inverse_map_sf_sff.update({sf_names[elem]: key})
         for sfc in odl_config.get("service-function-chains", []):
-            sfc["service_function"] = [sf_names[x] for x in sfc["service_function"]]
+            new_sf = []
+            sfc_len = len(sfc["service_function"])
+            for i in range(sfc_len):
+                new_sf.append(sf_names[sfc["service_function"][i]])
+                for element, value in self.new_element_templates.items():
+                    for req in value.get("requirements", []):
+                        if req.get("host") == sf_names[sfc["service_function"][i]]:
+                            utils.deep_update_dict(
+                                self.new_element_templates.get(element),
+                                {
+                                    "interfaces": {
+                                        "Standard": {
+                                            self.vnf_script_type: {
+                                                "inputs": {
+                                                    "service_function_chains": {
+                                                        "RSP" + "-" + sfc["name"]: i,
+                                                        "RSP"
+                                                        + "-"
+                                                        + sfc["name"]
+                                                        + "-"
+                                                        + "Reverse": sfc_len
+                                                        - i
+                                                        - 1,
+                                                    },
+                                                    "controller": copy.deepcopy(
+                                                        self.controller
+                                                    ),
+                                                    "forwarder": {
+                                                        "ip-address": inverse_map_sf_sff.get(
+                                                            sf_names[
+                                                                sfc["service_function"][
+                                                                    i
+                                                                ]
+                                                            ]
+                                                        )
+                                                    },
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                            )
+            sfc["service_function"] = new_sf
         for sff in odl_config.get("service-function-forwarders", []):
             utils.deep_update_dict(
                 self.new_element_templates.get(self.software_prefix + sff["name"]),
                 {
                     "interfaces": {
                         "Standard": {
-                            "configure": {"implementation": "configure_forwarder.yaml"}
+                            self.vnf_script_type: {
+                                "implementation": self.vnf_script_type
+                                + "_"
+                                + "forwarder.yaml",
+                                "inputs": {
+                                    "controller": copy.deepcopy(self.controller),
+                                },
+                            }
                         }
                     }
                 },
@@ -710,6 +817,7 @@ class ToscaNormativeTemplate(object):
                         utils.deep_update_dict(
                             odl_config, {"service-function-classifiers": [cls]}
                         )
+                    script = self.vnf_script_type + "_" + "classifier.yaml"
                     utils.deep_update_dict(
                         self.new_element_templates.get(
                             self.software_prefix + cls["sff"]
@@ -717,8 +825,13 @@ class ToscaNormativeTemplate(object):
                         {
                             "interfaces": {
                                 "Standard": {
-                                    "configure": {
-                                        "implementation": "configure_classifier.yaml"
+                                    self.vnf_script_type: {
+                                        "implementation": script,
+                                        "inputs": {
+                                            "controller": copy.deepcopy(
+                                                self.controller
+                                            ),
+                                        },
                                     }
                                 }
                             }
@@ -728,7 +841,8 @@ class ToscaNormativeTemplate(object):
             json.dumps(odl_config, ensure_ascii=False, indent=4),
             output_dir=self.output_dir,
         )
-        print(json.dumps(odl_config, ensure_ascii=False, indent=4))
+        # for debug
+        # print(json.dumps(odl_config, ensure_ascii=False, indent=4))
 
     @staticmethod
     def split_sf_sff(sf_addresses, sff_addresses):
@@ -964,7 +1078,34 @@ class ToscaNormativeTemplate(object):
                             self.translate_specific_types(tmp_template, tmpl_name),
                         )
                         logging.info("Successfully parsed {} node.".format(tmpl_name))
-        self.create_config_json()
+        basic_script = self.basic_script_type + "_" + self.provider + ".yaml"
+        vnf_script = self.vnf_script_type + "_" + self.provider + ".yaml"
+        controller_script = self.basic_script_type + "_" + "controller" + ".yaml"
+        forwarder_script = self.vnf_script_type + "_" + "forwarder" + ".yaml"
+        classifier_script = self.vnf_script_type + "_" + "classifier" + ".yaml"
+
+        if len(self.network_service_keys) > 0:
+            self.create_config_json()
+            self.update_scripts(
+                vnf_script,
+                self.vnf_scripts,
+                ADD_PATH + self.provider + "/" + self.provider + ".yaml",
+            )
+            self.update_scripts(
+                forwarder_script,
+                self.vnf_scripts,
+                ADD_PATH + self.provider + "/" + "forwarder" + ".yaml",
+            )
+            self.update_scripts(
+                classifier_script,
+                self.vnf_scripts,
+                ADD_PATH + self.provider + "/" + "classifier" + ".yaml",
+            )
+            self.update_scripts(
+                controller_script,
+                self.basic_scripts,
+                ADD_PATH + self.provider + "/" + "controller" + ".yaml",
+            )
         for key in self.new_element_templates:
             if key in element_templates:
                 element_templates.pop(key)
@@ -989,43 +1130,14 @@ class ToscaNormativeTemplate(object):
                 )
             )
         ]
-        basic_script = self.basic_script_type + "_" + self.provider + ".yaml"
-        vnf_script = self.vnf_script_type + "_" + self.provider + ".yaml"
-        try:
-            with open(
-                utils.get_project_root_path()
-                + PROVIDERS_PATH
-                + self.provider
-                + ".yaml",
-                "r+",
-            ) as f:
-                script_lines = f.readlines()
-        except:
-            logging.error("Error! Failed to open provider template file.")
-            sys.exit(1)
-        if basic_script not in self.basic_scripts:
-            self.basic_scripts[basic_script] = script_lines
-        else:
-            self.basic_scripts[basic_script] += script_lines
+        self.update_scripts(
+            basic_script, self.basic_scripts, PROVIDERS_PATH + self.provider + ".yaml"
+        )
         logging.info("Successfully loaded provider template file.")
         for file in vnffiles:
-            try:
-                with open(
-                    utils.get_project_root_path()
-                    + VNF_PATH
-                    + self.provider
-                    + "/"
-                    + file,
-                    "r+",
-                ) as f:
-                    script_lines = f.readlines()
-            except:
-                logging.error("Error! Failed to open VNF template file.")
-                sys.exit(1)
-            if vnf_script not in self.vnf_scripts:
-                self.vnf_scripts[vnf_script] = script_lines
-            else:
-                self.vnf_scripts[vnf_script] += script_lines
+            self.update_scripts(
+                vnf_script, self.vnf_scripts, VNF_PATH + self.provider + "/" + file
+            )
         logging.info("Successfully loaded VNF template files.")
         for key, value in self.new_element_templates.items():
             if self.basic_configure_node_type == value["type"]:
@@ -1040,19 +1152,48 @@ class ToscaNormativeTemplate(object):
                     },
                 )
             if self.vnf_configure_node_type == value["type"]:
-                self.new_element_templates[key] = utils.deep_update_dict(
-                    self.new_element_templates[key],
-                    {
-                        "interfaces": {
-                            "Standard": {
-                                self.vnf_script_type: {"implementation": vnf_script}
-                            }
-                        }
-                    },
-                )
+                interfaces = self.new_element_templates[key].get("interfaces")
+                if interfaces:
+                    if (
+                        interfaces.get("Standard")
+                        and interfaces.get("Standard").get(self.vnf_script_type)
+                        and "VNF_types"
+                        in interfaces.get("Standard")
+                        .get(self.vnf_script_type)
+                        .get("implementation")
+                    ):
+                        self.new_element_templates[key] = utils.deep_update_dict(
+                            self.new_element_templates[key],
+                            {
+                                "interfaces": {
+                                    "Standard": {
+                                        self.vnf_script_type: {
+                                            "implementation": vnf_script
+                                        }
+                                    }
+                                }
+                            },
+                        )
+        if len(self.network_service_keys) > 0:
+            utils.deep_update_dict(self.new_element_templates, self.tosca_controller)
         element_templates = utils.deep_update_dict(
             element_templates, self.new_element_templates
         )
         self.result_template["tosca_definitions_version"] = self.version
         self.result_template["topology_template"] = {}
         self.result_template["topology_template"]["node_templates"] = element_templates
+
+    def update_scripts(self, script, scripts, path):
+        try:
+            with open(
+                utils.get_project_root_path() + path,
+                "r+",
+            ) as f:
+                script_lines = f.readlines()
+        except:
+            logging.error("Error! Failed to open file %s." % script)
+            sys.exit(1)
+        if script not in scripts:
+            scripts[script] = script_lines
+        else:
+            scripts[script] += script_lines

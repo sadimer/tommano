@@ -105,7 +105,7 @@ nfv.nodes.VnfExtCpd:
      VDUCpd:
         - type: tosca.nodes.network.Port
           node_name: rename
-          # тут почему то нельзя стало делать ничего кроме rename, странно...
+          # тут почему-то нельзя стало делать ничего кроме rename, странно...
      intVirtualLinkDesc:
         - type: tosca.nodes.network.Network
           node_name: check
@@ -217,6 +217,19 @@ nfv.nodes.VNFD.DNS:
           parameter: interfaces.Standard.configure.inputs.DNS_iPAddressType
 
 nfv.nodes.VNFD.Firewall:
+   properties:
+      modifiableAttributes.extension:
+        - type: tosca.nodes.SoftwareComponent
+          parameter: interfaces.Standard.configure.implementation
+          format: "VNF_types/Firewall.yaml"
+      modifiableAttributes.extension.standard_rules:
+        - type: tosca.nodes.SoftwareComponent
+          parameter: interfaces.Standard.configure.inputs.Firewall_standard_rules
+      modifiableAttributes.extension.dpi_rules:
+        - type: tosca.nodes.SoftwareComponent
+          parameter: interfaces.Standard.configure.inputs.Firewall_dpi_rules
+
+nfv.nodes.VNFD.DPI:
    properties:
       modifiableAttributes.extension:
         - type: tosca.nodes.SoftwareComponent

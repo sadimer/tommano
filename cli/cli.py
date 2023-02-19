@@ -18,7 +18,7 @@ class TranslatorCli(object):
     self.validate_only - true, если нужно только валидировать шаблон
     self.output_dict - yaml dict итогового шаблона
     self.generated_scripts - dict of lists строк ansible скриптов для настройки compute узлов
-    self.log_level - уровень логирования nfv_tosca_translator.log
+    self.log_level - уровень логирования tommano.log
     Принцип работы:
     1) парсим аргументы командной строки
     2) вызываем функцию translate для преобразования шаблона
@@ -62,7 +62,7 @@ class TranslatorCli(object):
                     print(line, end="")
 
     def get_parser(self):
-        parser = argparse.ArgumentParser(prog="nfv_tosca_translator")
+        parser = argparse.ArgumentParser(prog="tommano")
         parser.add_argument(
             "--template-file",
             metavar="<filename>",
@@ -89,8 +89,8 @@ class TranslatorCli(object):
         )
         parser.add_argument(
             "--orchestrator",
-            default="nfv",
-            choices=["nfv", "clouni"],
+            default="clouni",
+            choices=["clouni"],
             help="Translate to template supported by specific orchestrator",
         )
         parser.add_argument(

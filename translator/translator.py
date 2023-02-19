@@ -12,7 +12,7 @@ VNF_DEF_PATH = "/definitions/VNF_types/"
 NFV_DEF_PATH = "/definitions/NFV_definintion_1_0.yaml"
 TOSCA_DEF_PATH = "/definitions/TOSCA_definition_1_0.yaml"
 MAP_PATH = "/definitions/TOSCA_NFV_mapping"
-PROJECT_NAME = "nfv_tosca_translator"
+PROJECT_NAME = "tommano"
 
 
 def translate(
@@ -29,7 +29,7 @@ def translate(
     Вход:
     template_file - путь к файлу с исходным шаблном в нотации TOSCA NFV
     validate_only -  true, если нужно только валидировать шаблон
-    log_level='info' - уровень логирования nfv_tosca_translator.log
+    log_level='info' - уровень логирования tommano.log
     Выход:
     output_dict - yaml dict итогового шаблона
     generated_scripts - dict of lists строк ansible скриптов для настройки compute узлов
@@ -53,9 +53,7 @@ def translate(
     MAP_PATH = "/definitions/TOSCA_NFV_mapping_" + orchestrator + ".yaml"
     logging_format = "%(asctime)s %(levelname)s %(message)s"
     logging.basicConfig(
-        filename=os.path.join(
-            utils.get_project_root_path() + "/", "nfv_tosca_translator.log"
-        ),
+        filename=os.path.join(utils.get_project_root_path() + "/", "tommano.log"),
         filemode="a",
         level=log_map[log_level],
         format=logging_format,

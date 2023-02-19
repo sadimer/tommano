@@ -2,7 +2,6 @@ controller:
   name: controller
   user: admin
   password: admin
-  ip-address: "10.100.157.52"
   port: "8181"
 vnf_types:
   Nat: napt44
@@ -15,3 +14,26 @@ vnf_types:
   SpamVirus: ids
   DHCP: error
   DNS: error
+tosca:
+  controller:
+    type: tosca.nodes.Compute
+    capabilities:
+      host:
+        properties:
+          disk_size: 10 GiB
+          mem_size: 1 GiB
+          num_cpus: 1
+      os:
+        properties:
+          type: Ubuntu
+          version: '18.04'
+  controller_port:
+    type: tosca.nodes.network.Port
+  software_for_controller:
+    type: tosca.nodes.SoftwareComponent
+    interfaces:
+      Standard:
+        configure:
+          implementation: configure_controller.yaml
+        create:
+          implementation: create_controller.yaml

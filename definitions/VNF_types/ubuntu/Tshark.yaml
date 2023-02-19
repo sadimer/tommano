@@ -1,3 +1,10 @@
+- name: Install Tshark # TODO: переписать на ансибл
+  shell: |
+    apt-get update -y
+    apt-get install tshark -y
+  become: yes
+  when: Tshark_analyze_captureFilter is defined
+
 - name: Tshark VNFD
   shell: |
     cat > /usr/bin/myshark << EOF

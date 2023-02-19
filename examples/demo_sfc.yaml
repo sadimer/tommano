@@ -55,64 +55,6 @@ topology_template:
         - cpdId: ext_external_cpd_cl_1
         - cpdId: external_cpd_f # классификатор это то что торчит ext cpd наружу, а если ext cpd нет это forwarder
 
-    DPI:
-      type: nfv.nodes.VNFD.DPI
-      properties:
-        vnfProvider: clouni
-        vnfProductName: DPI
-        vnfSoftwareVersion: v1.0
-        modifiableAttributes:
-          extension:
-            dpi_rules:
-              - action: DROP
-                deepProtocol: youtube
-                routingPath: FORWARD
-              - action: DROP
-                deepProtocol: wikipedia
-                routingPath: FORWARD
-      requirements:
-        - vnfExtCpd: ext_external_cpd_vnf_1
-        - vdu: SN-SF1
-
-    firewall:
-      type: nfv.nodes.VNFD.Firewall
-      properties:
-        vnfProvider: clouni
-        vnfProductName: firewall
-        vnfSoftwareVersion: v1.0
-        modifiableAttributes:
-          extension:
-            standard_rules:
-              - action: DROP
-                protocol: tcp
-                routingPath: FORWARD
-                destPort: 22
-              - action: DROP
-                protocol: tcp
-                routingPath: INPUT
-                destPort: 22
-      requirements:
-        - vnfExtCpd: ext_external_cpd_vnf_2
-        - vdu: SN-SF2
-
-    ntop:
-      type: nfv.nodes.VNFD.Ntop_analyze
-      properties:
-        vnfdId: vnfd_0
-        vnfProvider: clouni
-        vnfProductName: ntop
-        vnfSoftwareVersion: v1.0
-        modifiableAttributes:
-          extension:
-            endpointPort: 3000
-            internalNetCidr:
-              - { get_property: [ external_vl, cidrData, cidr ] }
-            interfacesNames:
-              - br0
-      requirements:
-        - vnfExtCpd: ext_external_cpd_vnf_3
-        - vdu: SN-SF3
-
     Client:
       type: nfv.nodes.VDU
       properties:
@@ -379,3 +321,60 @@ topology_template:
         - VDUCpd: external_cpd_vnf_3
         - intVirtualLinkDesc: external_vl
 
+    DPI: # TODO: тут может возникать проблема с лишними software componets
+      type: nfv.nodes.VNFD.DPI
+      properties:
+        vnfProvider: clouni
+        vnfProductName: DPI
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            dpi_rules:
+              - action: DROP
+                deepProtocol: youtube
+                routingPath: FORWARD
+              - action: DROP
+                deepProtocol: wikipedia
+                routingPath: FORWARD
+      requirements:
+        - vnfExtCpd: ext_external_cpd_vnf_1
+        - vdu: SN-SF1
+
+    firewall:
+      type: nfv.nodes.VNFD.Firewall
+      properties:
+        vnfProvider: clouni
+        vnfProductName: firewall
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            standard_rules:
+              - action: DROP
+                protocol: tcp
+                routingPath: FORWARD
+                destPort: 22
+              - action: DROP
+                protocol: tcp
+                routingPath: INPUT
+                destPort: 22
+      requirements:
+        - vnfExtCpd: ext_external_cpd_vnf_2
+        - vdu: SN-SF2
+
+    ntop:
+      type: nfv.nodes.VNFD.Ntop_analyze
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: clouni
+        vnfProductName: ntop
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            endpointPort: 3000
+            internalNetCidr:
+              - { get_property: [ external_vl, cidrData, cidr ] }
+            interfacesNames:
+              - br0
+      requirements:
+        - vnfExtCpd: ext_external_cpd_vnf_3
+        - vdu: SN-SF3

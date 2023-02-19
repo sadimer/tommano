@@ -9,30 +9,29 @@
 - name: Ovs configure # TODO: переписать на нормальный Ansible
   become: yes
   shell: |
-    echo "Removing old ovs configuration."
-    sudo /etc/init.d/openvswitch-switch stop
-    sudo kill `cd /usr/local/var/run/openvswitch && cat ovsdb-server.pid ovs-vswitchd.pid`
-    sudo rm -rf /usr/local/var/run/openvswitch
-    sudo mkdir -p /usr/local/var/run/openvswitch
-    sudo rm -rf /usr/local/etc/openvswitch
-    sudo mkdir -p /usr/local/etc/openvswitch
-    sudo rm -rf /var/run/openvswitch
-    sudo mkdir -p /var/run/openvswitch
-    sudo rm -rf /etc/openvswitch
-    sudo mkdir -p /etc/openvswitch
-    sudo rm -rf /var/log/openvswitch
-    sudo mkdir -p /var/log/openvswitch
-    sudo rmmod openvswitch
-    sudo rmmod gre
-    sudo rmmod vxlan
-    sudo rmmod libcrc32c
-    sudo rmmod openvswitch
-    sudo dpkg --force-all --purge openvswitch-switch
-    sudo dpkg --force-all --purge openvswitch-common
-    sudo dpkg --force-all --purge openvswitch-datapath-dkms
-    sudo rm /tmp/ovsdb.txt
+    /etc/init.d/openvswitch-switch stop
+    kill `cd /usr/local/var/run/openvswitch && cat ovsdb-server.pid ovs-vswitchd.pid`
+    rm -rf /usr/local/var/run/openvswitch
+    mkdir -p /usr/local/var/run/openvswitch
+    rm -rf /usr/local/etc/openvswitch
+    mkdir -p /usr/local/etc/openvswitch
+    rm -rf /var/run/openvswitch
+    mkdir -p /var/run/openvswitch
+    rm -rf /etc/openvswitch
+    mkdir -p /etc/openvswitch
+    rm -rf /var/log/openvswitch
+    mkdir -p /var/log/openvswitch
+    rmmod openvswitch
+    rmmod gre
+    rmmod vxlan
+    rmmod libcrc32c
+    rmmod openvswitch
+    dpkg --force-all --purge openvswitch-switch
+    dpkg --force-all --purge openvswitch-common
+    dpkg --force-all --purge openvswitch-datapath-dkms
+    rm /tmp/ovsdb.txt
     touch /tmp/ovsdb.txt
-    sudo rm /tmp/vswitch.txt
+    rm /tmp/vswitch.txt
     touch /tmp/vswitch.txt
     git clone https://github.com/openvswitch/ovs.git
     git clone https://github.com/yyang13/ovs_nsh_patches.git
@@ -44,32 +43,29 @@
     make clean
     ./boot.sh
     ./configure --with-linux=/lib/modules/`uname -r`/build
-    sudo make uninstall
-    sudo apt-get update
-    sudo apt-get install -y build-essential
-    sudo apt-get install -y fakeroot
-    sudo apt-get install -y debhelper
-    sudo apt-get install -y autoconf
-    sudo apt-get install -y automake
-    sudo apt-get install -y libssl-dev
-    sudo apt-get install -y bzip2
-    sudo apt-get install -y openssl
-    sudo apt-get install -y graphviz
-    sudo apt-get install -y python-all
-    sudo apt-get install -y procps
-    sudo apt-get install -y python-qt4
-    sudo apt-get install -y python-zopeinterface
-    sudo apt-get install -y python-twisted-conch
-    sudo apt-get install -y libtool
-    sudo apt-get install -y dh-autoreconf
-    echo "Checking Build Dependencies."
-    sudo dpkg-checkbuilddeps
+    make uninstall
+    apt-get update
+    apt-get install -y build-essential
+    apt-get install -y fakeroot
+    apt-get install -y debhelper
+    apt-get install -y autoconf
+    apt-get install -y automake
+    apt-get install -y libssl-dev
+    apt-get install -y bzip2
+    apt-get install -y openssl
+    apt-get install -y graphviz
+    apt-get install -y python-all
+    apt-get install -y procps
+    apt-get install -y python-qt4
+    apt-get install -y python-zopeinterface
+    apt-get install -y python-twisted-conch
+    apt-get install -y libtool
+    apt-get install -y dh-autoreconf
+    dpkg-checkbuilddeps
     if [ $? -gt 0 ]; then
         echo "ERROR:Build Dependencies not met."
         exit 1
     fi
-
-    echo "Creating Debian Packages."
     rm ../openvswitch-*.deb
     rm ../python-openvswitch*.deb
     DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
@@ -77,29 +73,20 @@
         echo "ERROR:Creating Debian packages failed."
         exit 1
     fi
-
-    echo "Installing kernel module using dkms."
-    sudo apt-get install -y linux-headers-`uname -r`
-    sudo apt-get install -y dkms
-    sudo dpkg --install ../openvswitch-datapath-dkms*
+    apt-get install -y linux-headers-`uname -r`
+    apt-get install -y dkms
+    dpkg --install ../openvswitch-datapath-dkms*
     if [ $? -gt 0 ]; then
         echo "ERROR:Installing openvswitch kernel module failed."
         exit 1
     fi
-
-    echo "Installing openvswitch userland packages."
-    sudo dpkg --install ../openvswitch-common*
-    sudo dpkg --install ../openvswitch-switch*
+    dpkg --install ../openvswitch-common*
+    dpkg --install ../openvswitch-switch*
     if [ $? -gt 0 ]; then
         echo "ERROR:Installing openvswitch userland packages failed."
         exit 1
     fi
+    /etc/init.d/openvswitch-switch restart
 
-    sudo /etc/init.d/openvswitch-switch restart
-
-    sudo lsmod | grep -i open
-    sudo update-rc.d -f openvswitch-switch remove
-    sudo ovs-vsctl show
-
-    echo "Install Complete!"
-    exit 0
+    lsmod | grep -i open
+    update-rc.d -f openvswitch-switch remove
