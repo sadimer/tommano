@@ -42,6 +42,8 @@
     ovs-vsctl set interface xeth0 ofport_request=3
     ovs-vsctl set interface xeth1 ofport_request=4
     ovs-vsctl set interface vxlan0 ofport_request=5
+    
+    ovs-ofctl del-flows br0 
 
 # TODO: дописать команды для перезагрузки ovs
 - name: REST API to /restconf/operations/rendered-service-path:read-rendered-service-path-first-hop
