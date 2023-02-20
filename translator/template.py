@@ -1172,18 +1172,13 @@ class ToscaNormativeTemplate(object):
                                             "implementation": vnf_script
                                         }
                                     }
-                                }
+                                },
+                                "requirements": [
+                                    {"dependency": "software_for_controller"}
+                                ],
                             },
                         )
         if len(self.network_service_keys) > 0:
-            for node in self.new_element_templates:
-                if self.software_prefix in node:
-                    utils.deep_update_dict(
-                        self.new_element_templates[
-                            node
-                        ],  # ну мб это плохое решение, но попробовать стоит
-                        {"requirements": [{"dependency": "software_for_controller"}]},
-                    )
             utils.deep_update_dict(self.new_element_templates, self.tosca_controller)
         element_templates = utils.deep_update_dict(
             element_templates, self.new_element_templates
