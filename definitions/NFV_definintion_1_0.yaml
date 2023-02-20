@@ -13,54 +13,63 @@ node_types:
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Firewall
+        required: false
     
   nfv.nodes.VNFD.Nat: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Nat
+        required: false
             
   nfv.nodes.VNFD.QoS: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.QoS
+        required: false
               
   nfv.nodes.VNFD.SpamVirus: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.SpamVirus
+        required: false
   
   nfv.nodes.VNFD.DHCP: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.DHCP
+        required: false
   
   nfv.nodes.VNFD.DNS: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.DNS
+        required: false
   
   nfv.nodes.VNFD.Tshark_analyze:
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Tshark_analyze
+        required: false
   
   nfv.nodes.VNFD.Routing: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Routing
+        required: false
     
   nfv.nodes.VNFD.Ntop_analyze:
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Ntop_analyze
+        required: false
     
   nfv.nodes.VNFD:
     derived_from: tosca.nodes.Root
@@ -542,6 +551,9 @@ data_types:
   nfv.datatypes.CidrData: # не каноничный тип, использовать не обязательно, если не указан, генерируем рандомно
     derived_from: tosca.datatypes.Root
     properties:
+      segmentationId:
+        type: integer
+        required: false
       networkName:
         type: string
         required: false

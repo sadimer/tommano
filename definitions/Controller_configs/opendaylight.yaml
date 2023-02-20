@@ -20,17 +20,19 @@ tosca:
     capabilities:
       host:
         properties:
-          disk_size: 10 GiB
-          mem_size: 1 GiB
+          disk_size: 50 GiB
+          mem_size: 2 GiB
           num_cpus: 1
       os:
         properties:
-          type: Ubuntu
+          type: ubuntu
           version: '18.04'
   controller_port:
     type: tosca.nodes.network.Port
   software_for_controller:
     type: tosca.nodes.SoftwareComponent
+    requirements:
+      - host: controller
     interfaces:
       Standard:
         configure:

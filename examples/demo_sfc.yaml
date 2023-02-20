@@ -2,21 +2,21 @@ tosca_definitions_version: tosca_simple_yaml_1_0
 
 topology_template:
   node_templates:
-    huawei-ns:
+    huawei_ns:
       type: nfv.nodes.ns.NSD
       properties:
-        nsdIdentifier: huawei-ns
+        nsdIdentifier: huawei_ns
       requirements:
-        - nestedNsdId: huawei-ns
-        - vnffgd: huawei-vnffgd
+        - nestedNsdId: huawei_ns
+        - vnffgd: huawei_vnffgd
         - virtualLinkDesc: external_vl
 
-    huawei-vnffgd:
+    huawei_vnffgd:
       type: nfv.nodes.ns.vnffgd
       requirements:
         - vnfdId: DPI
         - vnfdId: firewall
-        - vnfdId: ntop
+        - vnfdId: nat
         - cpdPoolId: pool
         - nfpd: SFC1
         - nfpd: SFC2
@@ -69,8 +69,8 @@ topology_template:
           id: sd_cl_1
           sizeOfStorage: 10 GiB
         swImageDesc:
-          operatingSystem: Ubuntu
-          version: '14.04'
+          operatingSystem: ubuntu
+          version: openflow
           id: sw_cl_1
 
     Server:
@@ -87,11 +87,11 @@ topology_template:
           id: sd_cl_2
           sizeOfStorage: 10 GiB
         swImageDesc:
-          operatingSystem: Ubuntu
-          version: '14.04'
+          operatingSystem: ubuntu
+          version: openflow
           id: sw_cl_2
 
-    SN-SFF:
+    SN_SFF:
       type: nfv.nodes.VDU
       properties:
         virtualComputeDesc:
@@ -105,11 +105,11 @@ topology_template:
           id: sd_f
           sizeOfStorage: 10 GiB
         swImageDesc:
-          operatingSystem: Ubuntu
-          version: '14.04'
+          operatingSystem: ubuntu
+          version: openflow
           id: sw_f
 
-    SN-SF1:
+    SN_SF1:
       type: nfv.nodes.VDU
       properties:
         virtualComputeDesc:
@@ -123,11 +123,11 @@ topology_template:
           id: sd_1
           sizeOfStorage: 10 GiB
         swImageDesc:
-          operatingSystem: Ubuntu
-          version: '14.04'
+          operatingSystem: ubuntu
+          version: openflow
           id: sw_1
 
-    SN-SF2:
+    SN_SF2:
       type: nfv.nodes.VDU
       properties:
         virtualComputeDesc:
@@ -141,11 +141,11 @@ topology_template:
           id: sd_2
           sizeOfStorage: 10 GiB
         swImageDesc:
-          operatingSystem: Ubuntu
-          version: '14.04'
+          operatingSystem: ubuntu
+          version: openflow
           id: sw_2
 
-    SN-SF3:
+    SN_SF3:
       type: nfv.nodes.VDU
       properties:
         virtualComputeDesc:
@@ -159,8 +159,8 @@ topology_template:
           id: sd_3
           sizeOfStorage: 10 GiB
         swImageDesc:
-          operatingSystem: Ubuntu
-          version: '14.04'
+          operatingSystem: ubuntu
+          version: openflow
           id: sw_3
 
     external_vl:
@@ -172,7 +172,8 @@ topology_template:
         virtualLinkDescFlavour:
           flavourId: fl_vl_1
         cidrData:
-          networkName: net-for-nfv
+          segmentationId: 452
+          networkName: net_for_nfv
           cidr: 10.100.156.0/22
           startIp: 10.100.157.0
           endIp: 10.100.157.254
@@ -193,7 +194,7 @@ topology_template:
             iPAddressType: IPV4
             numberOfIpAddress: 1
       requirements:
-        - intCpd: SN-SFF
+        - intCpd: SN_SFF
         - intVirtualLinkDesc: external_vl
 
     external_cpd_cl_1:
@@ -260,7 +261,7 @@ topology_template:
             iPAddressType: IPV4
             numberOfIpAddress: 1
       requirements:
-        - intCpd: SN-SF1
+        - intCpd: SN_SF1
         - intVirtualLinkDesc: external_vl
 
     ext_external_cpd_vnf_1:
@@ -285,7 +286,7 @@ topology_template:
             iPAddressType: IPV4
             numberOfIpAddress: 1
       requirements:
-        - intCpd: SN-SF2
+        - intCpd: SN_SF2
         - intVirtualLinkDesc: external_vl
 
     ext_external_cpd_vnf_2:
@@ -310,7 +311,7 @@ topology_template:
             iPAddressType: IPV4
             numberOfIpAddress: 1
       requirements:
-        - intCpd: SN-SF3
+        - intCpd: SN_SF3
         - intVirtualLinkDesc: external_vl
 
     ext_external_cpd_vnf_3:
@@ -329,16 +330,18 @@ topology_template:
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
           extension:
-            dpi_rules:
+            standard_rules:
               - action: DROP
-                deepProtocol: youtube
+                protocol: tcp
                 routingPath: FORWARD
+                destPort: 80
               - action: DROP
-                deepProtocol: wikipedia
-                routingPath: FORWARD
+                protocol: tcp
+                routingPath: INPUT
+                destPort: 80
       requirements:
         - vnfExtCpd: ext_external_cpd_vnf_1
-        - vdu: SN-SF1
+        - vdu: SN_SF1
 
     firewall:
       type: nfv.nodes.VNFD.Firewall
@@ -359,10 +362,10 @@ topology_template:
                 destPort: 22
       requirements:
         - vnfExtCpd: ext_external_cpd_vnf_2
-        - vdu: SN-SF2
+        - vdu: SN_SF2
 
-    ntop:
-      type: nfv.nodes.VNFD.Ntop_analyze
+    nat:
+      type: nfv.nodes.VNFD.Nat
       properties:
         vnfdId: vnfd_0
         vnfProvider: clouni
@@ -370,11 +373,12 @@ topology_template:
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
           extension:
-            endpointPort: 3000
-            internalNetCidr:
-              - { get_property: [ external_vl, cidrData, cidr ] }
-            interfacesNames:
-              - br0
+            rules:
+              - typeNat: static
+                routingType: snat
+                sourceAddrPr: 10.100.157.40/22
+                destAddrPr: 10.100.157.140/22
+                protocol: tcp
       requirements:
         - vnfExtCpd: ext_external_cpd_vnf_3
-        - vdu: SN-SF3
+        - vdu: SN_SF3

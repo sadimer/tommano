@@ -6,87 +6,87 @@
     update_cache: yes
   loop: ['curl', 'git', 'bridge-utils']
 
-- name: Ovs configure # TODO: переписать на нормальный Ansible
-  become: yes
-  shell: |
-    /etc/init.d/openvswitch-switch stop
-    kill `cd /usr/local/var/run/openvswitch && cat ovsdb-server.pid ovs-vswitchd.pid`
-    rm -rf /usr/local/var/run/openvswitch
-    mkdir -p /usr/local/var/run/openvswitch
-    rm -rf /usr/local/etc/openvswitch
-    mkdir -p /usr/local/etc/openvswitch
-    rm -rf /var/run/openvswitch
-    mkdir -p /var/run/openvswitch
-    rm -rf /etc/openvswitch
-    mkdir -p /etc/openvswitch
-    rm -rf /var/log/openvswitch
-    mkdir -p /var/log/openvswitch
-    rmmod openvswitch
-    rmmod gre
-    rmmod vxlan
-    rmmod libcrc32c
-    rmmod openvswitch
-    dpkg --force-all --purge openvswitch-switch
-    dpkg --force-all --purge openvswitch-common
-    dpkg --force-all --purge openvswitch-datapath-dkms
-    rm /tmp/ovsdb.txt
-    touch /tmp/ovsdb.txt
-    rm /tmp/vswitch.txt
-    touch /tmp/vswitch.txt
-    git clone https://github.com/openvswitch/ovs.git
-    git clone https://github.com/yyang13/ovs_nsh_patches.git
-    cd ovs
-    git config user.email "yi.y.yang@intel.com"
-    git config user.name "Yi Yang"
-    git reset --hard 7d433ae57ebb90cd68e8fa948a096f619ac4e2d8
-    git am ../ovs_nsh_patches/*.patch
-    make clean
-    ./boot.sh
-    ./configure --with-linux=/lib/modules/`uname -r`/build
-    make uninstall
-    apt-get update
-    apt-get install -y build-essential
-    apt-get install -y fakeroot
-    apt-get install -y debhelper
-    apt-get install -y autoconf
-    apt-get install -y automake
-    apt-get install -y libssl-dev
-    apt-get install -y bzip2
-    apt-get install -y openssl
-    apt-get install -y graphviz
-    apt-get install -y python-all
-    apt-get install -y procps
-    apt-get install -y python-qt4
-    apt-get install -y python-zopeinterface
-    apt-get install -y python-twisted-conch
-    apt-get install -y libtool
-    apt-get install -y dh-autoreconf
-    dpkg-checkbuilddeps
-    if [ $? -gt 0 ]; then
-        echo "ERROR:Build Dependencies not met."
-        exit 1
-    fi
-    rm ../openvswitch-*.deb
-    rm ../python-openvswitch*.deb
-    DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
-    if [ $? -gt 0 ]; then
-        echo "ERROR:Creating Debian packages failed."
-        exit 1
-    fi
-    apt-get install -y linux-headers-`uname -r`
-    apt-get install -y dkms
-    dpkg --install ../openvswitch-datapath-dkms*
-    if [ $? -gt 0 ]; then
-        echo "ERROR:Installing openvswitch kernel module failed."
-        exit 1
-    fi
-    dpkg --install ../openvswitch-common*
-    dpkg --install ../openvswitch-switch*
-    if [ $? -gt 0 ]; then
-        echo "ERROR:Installing openvswitch userland packages failed."
-        exit 1
-    fi
-    /etc/init.d/openvswitch-switch restart
+#- name: Ovs configure # TODO: переписать на нормальный Ansible
+#  become: yes
+#  shell: |
+#    /etc/init.d/openvswitch-switch stop
+#    kill `cd /usr/local/var/run/openvswitch && cat ovsdb-server.pid ovs-vswitchd.pid`
+#    rm -rf /usr/local/var/run/openvswitch
+#    mkdir -p /usr/local/var/run/openvswitch
+#    rm -rf /usr/local/etc/openvswitch
+#    mkdir -p /usr/local/etc/openvswitch
+#    rm -rf /var/run/openvswitch
+#    mkdir -p /var/run/openvswitch
+#    rm -rf /etc/openvswitch
+#    mkdir -p /etc/openvswitch
+#    rm -rf /var/log/openvswitch
+#    mkdir -p /var/log/openvswitch
+#    rmmod openvswitch
+#    rmmod gre
+#    rmmod vxlan
+#    rmmod libcrc32c
+#    rmmod openvswitch
+#    dpkg --force-all --purge openvswitch-switch
+#    dpkg --force-all --purge openvswitch-common
+#    dpkg --force-all --purge openvswitch-datapath-dkms
+#    rm /tmp/ovsdb.txt
+#    touch /tmp/ovsdb.txt
+#    rm /tmp/vswitch.txt
+#    touch /tmp/vswitch.txt
+#    git clone https://github.com/openvswitch/ovs.git
+#    git clone https://github.com/yyang13/ovs_nsh_patches.git
+#    cd ovs
+#    git config user.email "yi.y.yang@intel.com"
+#    git config user.name "Yi Yang"
+#    git reset --hard 7d433ae57ebb90cd68e8fa948a096f619ac4e2d8
+#    git am ../ovs_nsh_patches/*.patch
+#    make clean
+#    ./boot.sh
+#    ./configure --with-linux=/lib/modules/`uname -r`/build
+#    make uninstall
+#    apt-get update
+#    apt-get install -y build-essential
+#    apt-get install -y fakeroot
+#    apt-get install -y debhelper
+#    apt-get install -y autoconf
+#    apt-get install -y automake
+#    apt-get install -y libssl-dev
+#    apt-get install -y bzip2
+#    apt-get install -y openssl
+#    apt-get install -y graphviz
+#    apt-get install -y python-all
+#    apt-get install -y procps
+#    apt-get install -y python-qt4
+#    apt-get install -y python-zopeinterface
+#    apt-get install -y python-twisted-conch
+#    apt-get install -y libtool
+#    apt-get install -y dh-autoreconf
+#    dpkg-checkbuilddeps
+#    if [ $? -gt 0 ]; then
+#        echo "ERROR:Build Dependencies not met."
+#        exit 1
+#    fi
+#    rm ../openvswitch-*.deb
+#    rm ../python-openvswitch*.deb
+#    DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
+#    if [ $? -gt 0 ]; then
+#        echo "ERROR:Creating Debian packages failed."
+#        exit 1
+#    fi
+#    apt-get install -y linux-headers-`uname -r`
+#    apt-get install -y dkms
+#    dpkg --install ../openvswitch-datapath-dkms*
+#    if [ $? -gt 0 ]; then
+#        echo "ERROR:Installing openvswitch kernel module failed."
+#        exit 1
+#    fi
+#    dpkg --install ../openvswitch-common*
+#    dpkg --install ../openvswitch-switch*
+#    if [ $? -gt 0 ]; then
+#        echo "ERROR:Installing openvswitch userland packages failed."
+#        exit 1
+#    fi
+#    /etc/init.d/openvswitch-switch restart
 
-    lsmod | grep -i open
-    update-rc.d -f openvswitch-switch remove
+#    lsmod | grep -i open
+#    update-rc.d -f openvswitch-switch remove

@@ -70,12 +70,17 @@ nfv.nodes.VnfVirtualLinkDesc:
   properties:
       virtualLinkDescId:
         - type: tosca.nodes.network.Network
+          parameter: properties.physical_network
+          format: datacentre
       connectivityType.layerProtocol:
         - parameter: properties.ip_version
           type: tosca.nodes.network.Network
           format: "{[3]!s}"
       virtualLinkDescFlavour.flavourId:
         - type: tosca.nodes.network.Network
+      cidrData.segmentationId:
+        - parameter: properties.segmentation_id
+          type: tosca.nodes.network.Network
       cidrData.networkName:
         - parameter: properties.network_name
           type: tosca.nodes.network.Network

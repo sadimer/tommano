@@ -1,6 +1,8 @@
 - name: Veth configure # TODO: переписать на нормальный Ansible
   become: yes
   shell: |
+    service openvswitch-switch restart
+    
     ip link add veth0 type veth peer name veth1
     ip link set dev veth0 up
     
@@ -14,10 +16,15 @@
     ip netns add sfc
     ip link set veth1 netns sfc
     ip link set veth2 netns sfc
+    
     ip netns exec sfc brctl addbr br0
     ip netns exec sfc brctl addif br0 veth1
     ip netns exec sfc brctl addif br0 veth2
+    
     ip netns exec sfc ifconfig br0 up
+    ip netns exec sfc ifconfig veth1 up
+    ip netns exec sfc ifconfig veth2 up
+    
     ip netns exec sfc ip addr add 1.2.3.4/32 dev br0
     
     ovs-vsctl add-br br0
@@ -55,10 +62,12 @@
     ovs-ofctl add-flow br0 "priority=1000,nsi={{ item.json.output['rendered-service-path-first-hop']['starting-index'] - item.item.value }},nsp={{ item.json.output['rendered-service-path-first-hop']['path-id'] }} actions=pop_nsh,output:3"
     ovs-ofctl add-flow br0 "priority=1,in_port=4,actions=push_nsh,load:0x1->NXM_NX_NSH_MDTYPE[],load:0x3->NXM_NX_NSH_NP[],load:{{ '%#x' % item.json.output['rendered-service-path-first-hop']['path-id'] }}->NXM_NX_NSP[0..23],load:{{ '%#x' % (item.json.output['rendered-service-path-first-hop']['starting-index'] - item.item.value - 1) }}->NXM_NX_NSI[],load:0x1->NXM_NX_NSH_C1[],load:0x2->NXM_NX_NSH_C2[],load:0x3->NXM_NX_NSH_C3[],load:0x4->NXM_NX_NSH_C4[],load:0x4->NXM_NX_TUN_GPE_NP[],load:0x{{ forwarder['ip-address'] | ip4_hex }}->NXM_NX_TUN_IPV4_DST[],output:5"
   with_items: "{{ paths.results }}"
+  become: yes
   when: "'Reverse' in item.item.key"
 
 - shell: |
     ovs-ofctl add-flow br0 "priority=1000,nsi={{ item.json.output['rendered-service-path-first-hop']['starting-index'] - item.item.value }},nsp={{ item.json.output['rendered-service-path-first-hop']['path-id'] }} actions=pop_nsh,output:1"
     ovs-ofctl add-flow br0 "priority=1,in_port=2,actions=push_nsh,load:0x1->NXM_NX_NSH_MDTYPE[],load:0x3->NXM_NX_NSH_NP[],load:{{ '%#x' % item.json.output['rendered-service-path-first-hop']['path-id'] }}->NXM_NX_NSP[0..23],load:{{ '%#x' % (item.json.output['rendered-service-path-first-hop']['starting-index'] - item.item.value - 1) }}->NXM_NX_NSI[],load:0x1->NXM_NX_NSH_C1[],load:0x2->NXM_NX_NSH_C2[],load:0x3->NXM_NX_NSH_C3[],load:0x4->NXM_NX_NSH_C4[],load:0x4->NXM_NX_TUN_GPE_NP[],load:0x{{ forwarder['ip-address'] | ip4_hex }}->NXM_NX_TUN_IPV4_DST[],output:5"
   with_items: "{{ paths.results }}"
+  become: yes
   when: "'Reverse' not in item.item.key"
