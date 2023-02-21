@@ -1140,6 +1140,7 @@ class ToscaNormativeTemplate(object):
                 vnf_script, self.vnf_scripts, VNF_PATH + self.provider + "/" + file
             )
         logging.info("Successfully loaded VNF template files.")
+        not_vnf_software = []
         for key, value in self.new_element_templates.items():
             if self.basic_configure_node_type == value["type"]:
                 self.new_element_templates[key] = utils.deep_update_dict(
@@ -1178,7 +1179,18 @@ class ToscaNormativeTemplate(object):
                                 ],
                             },
                         )
+                    else:
+                        not_vnf_software.append(key)
         if len(self.network_service_keys) > 0:
+            for software in not_vnf_software:
+                utils.deep_update_dict(
+                    self.tosca_controller,
+                    {
+                        "software_for_controller": {
+                            "requirements": [{"dependency": software}]
+                        }
+                    },
+                )
             utils.deep_update_dict(self.new_element_templates, self.tosca_controller)
         element_templates = utils.deep_update_dict(
             element_templates, self.new_element_templates
