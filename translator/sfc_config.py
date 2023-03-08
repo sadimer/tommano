@@ -1,14 +1,11 @@
 import json
 import logging
+import os.path
 import sys
-import os
 
 import yaml
 
-import translator.utils as utils
-
 # TODO: make it functional
-
 gInput = ""
 
 
@@ -354,8 +351,7 @@ def validate_and_load_input(json_data):
     return True
 
 
-def generate_restconf_files_for_create(json_data, output_dir):
-    outfiles = []
+def generate_restconf_files_for_create(json_data, output_dir, controller_provider):
     # check if input file data correctness
     return_code = validate_and_load_input(json_data)
     if return_code:
@@ -367,8 +363,58 @@ def generate_restconf_files_for_create(json_data, output_dir):
     # create outpur file name as script_folder + output.py
     exec_dirname = output_dir
     # create file for Service Node configuration
-    outfilename = exec_dirname + "/configure_controller.yaml"
+    outfilename = os.path.join(
+        exec_dirname,
+        "scripts/Controller_scripts",
+        controller_provider,
+        "configure.yaml",
+    )
+
     with open(outfilename, "w+") as op_fp:
+        print(
+            yaml.dump(
+                [
+                    {
+                        "name": "Wait for http controller port to be ready",
+                        "wait_for": {
+                            "host": gInput["controller"][
+                                "ip-address"
+                            ],  # TODO переделать на проброс переменных, убрать gInput
+                            "port": gInput["controller"]["port"],
+                        },
+                    }
+                ]
+            ),
+            file=op_fp,
+        )
+        print(
+            yaml.dump(
+                [
+                    {
+                        "name": "Wait for ovs controller port to be ready",
+                        "wait_for": {
+                            "host": gInput["controller"]["ip-address"],
+                            "port": 6653,
+                        },
+                    }
+                ]
+            ),
+            file=op_fp,
+        )
+        print(
+            yaml.dump(
+                [
+                    {
+                        "name": "Wait for final controller port to be ready",
+                        "wait_for": {
+                            "host": gInput["controller"]["ip-address"],
+                            "port": 9999,
+                        },
+                    }
+                ]
+            ),
+            file=op_fp,
+        )
         print(
             yaml.dump(
                 [

@@ -1,8 +1,0 @@
-- name: Veth configure # TODO: переписать на нормальный Ansible
-  become: yes
-  shell: |
-    /etc/init.d/openvswitch-switch stop
-    rm -rf /etc/openvswitch/conf.db
-    /etc/init.d/openvswitch-switch start
-    ovs-vsctl add-br br-sfc
-    ovs-vsctl set-manager tcp:{{ controller['ip-address'] }}:6640

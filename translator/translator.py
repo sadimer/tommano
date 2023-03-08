@@ -20,9 +20,11 @@ def translate(
     validate_only,
     controller,
     orchestrator,
-    provider,
     output_dir,
-    log_level="info",
+    log_level,
+    controller_provider,
+    forwarder_provider,
+    classifier_provider,
 ):
     """
     Функция трансляции шаблонов TOSCA NFV в TOSCA NORMATIVE
@@ -111,9 +113,11 @@ def translate(
             tosca_parser_tpl=tosca_parser_tpl,
             yaml_dict_mapping=mapping,
             orchestrator=orchestrator,
-            provider=provider,
             controller=controller,
             output_dir=output_dir,
+            controller_provider=controller_provider,
+            forwarder_provider=forwarder_provider,
+            classifier_provider=classifier_provider,
         )
         logging.info("Template successfully passed translation to normative TOSCA.")
     except:

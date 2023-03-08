@@ -1,0 +1,25 @@
+- name: Restart service openvswitch
+  service:
+    state: restarted
+    name: openvswitch-switch
+  become: yes
+
+- name: OVS configure
+  become: yes
+  shell: |
+    ovs-vsctl add-br br-sfc
+    ovs-vsctl set-manager tcp:{{ controller['ip-address'] }}:6640
+
+- name: Veth configure
+  become: yes
+  shell: |
+    ip netns add app
+    ip link add veth-app type veth peer name veth-br
+    
+    ovs-vsctl add-port br-sfc veth-br 
+    ip link set dev veth-br up
+    ip link set veth-app netns app
+    
+    ip netns exec app ip link set dev veth-app up
+    ip netns exec app ip link set dev lo up
+    ip netns exec app ifconfig veth-app mtu 1400

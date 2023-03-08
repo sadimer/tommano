@@ -32,34 +32,29 @@ class TranslatorCli(object):
         self.output_dir = args.output_dir
         self.orchestrator = args.orchestrator
         self.controller = args.controller
-        self.provider = args.provider
+        self.controller_provider = args.controller_provider
+        self.forwarder_provider = args.forwarder_provider
+        self.classifier_provider = args.classifier_provider
         if self.output_dir and not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
         self.validate_only = args.validate_only
         self.log_level = args.log_level
-        self.output_dict, self.basic_scripts, self.vnf_scripts = translate(
+        self.output_dict = translate(
             self.template_file,
             self.validate_only,
             self.controller,
             self.orchestrator,
-            self.provider,
             self.output_dir,
             self.log_level,
+            self.controller_provider,
+            self.forwarder_provider,
+            self.classifier_provider,
         )
-        self.basic_scripts.update(self.vnf_scripts)
         if self.output_dir:
             with open(self.output_dir + TOPOLOGY_TPL_NAME, "w+") as f:
                 yaml.dump(self.output_dict, f)
-            for key, script in self.basic_scripts.items():
-                with open(self.output_dir + "/" + key, "w+") as ouf:
-                    for line in script:
-                        print(line, file=ouf, end="")
         else:
             print(yaml.dump(self.output_dict))
-            for key, script in self.basic_scripts.items():
-                print("\n" + key + ":")
-                for line in script:
-                    print(line, end="")
 
     def get_parser(self):
         parser = argparse.ArgumentParser(prog="tommano")
@@ -100,10 +95,22 @@ class TranslatorCli(object):
             help="Controller for vnffg",
         )
         parser.add_argument(
-            "--provider",
-            default="cumulus",
-            choices=["cumulus", "ubuntu"],
-            help="Translate to template supported by specific vnf provider",
+            "--controller-provider",
+            default="ubuntu",
+            choices=["ubuntu"],
+            help="Provider operation system for OpenFlow controller",
+        )
+        parser.add_argument(
+            "--classifier-provider",
+            default="ubuntu",
+            choices=["ubuntu"],
+            help="Provider operation system for VNF classifiers",
+        )
+        parser.add_argument(
+            "--forwarder-provider",
+            default="ubuntu",
+            choices=["ubuntu"],
+            help="Provider operation system for VNF forwarders",
         )
         return parser
 

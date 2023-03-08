@@ -1,0 +1,11 @@
+- name: Restart service openvswitch
+  service:
+    state: restarted
+    name: openvswitch-switch
+  become: yes
+
+- name: OVS configure
+  become: yes
+  shell: |
+    ovs-vsctl add-br br-sfc
+    ovs-vsctl set-manager tcp:{{ controller['ip-address'] }}:6640

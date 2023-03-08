@@ -1,7 +1,0 @@
-basic_configure_node_type: tosca.nodes.SoftwareComponent
-basic_script_type: create
-vnf_configure_node_type: tosca.nodes.SoftwareComponent
-vnf_script_type: configure
-address_config: port_name
-software_prefix: software_for_
-port_binding_requirement: false

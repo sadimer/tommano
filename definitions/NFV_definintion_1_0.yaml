@@ -82,7 +82,9 @@ node_types:
         required: false
       vnfProvider:
         type: string
-        required: false
+        default: cumulus
+        constraints:
+          - valid_values: [ cumulus, ubuntu ]
       vnfProductName:
         type: string
         required: false
@@ -910,7 +912,7 @@ data_types:
       layerProtocol: 
         type: string
         default: IPV4
-        constraints:
+        constraints: # TODO: подумать с точки зрения стандарта можно сюда впилить туннельные типы для sfc?
           - valid_values: [ Ethernet, VxLAN, GRE, MPLS, ODU2, IPV4, IPV6, Pseudo-Wire ]
       flowPattern:
         type: string

@@ -21,7 +21,7 @@ nfv.nodes.VDU:
       virtualStorageDesc.id:
         - type: tosca.nodes.Compute
       virtualStorageDesc.typeOfStorage:
-        - type: tosca.nodes.Compute # временно!!
+        - type: tosca.nodes.Compute # временно
       virtualStorageDesc.sizeOfStorage:
         - type: tosca.nodes.Compute
           parameter: capabilities.host.properties.disk_size
@@ -157,6 +157,14 @@ nfv.nodes.VDUCpd:
           parameter: requirements.[0].link
 
 nfv.nodes.VNFD:
+  properties:
+    vnfProvider:
+      - type: tosca.nodes.SoftwareComponent
+        parameter: interfaces.Standard.create.implementation
+        format: "scripts/VNF_scripts/{}/standalone/create.yaml"
+      - type: tosca.nodes.SoftwareComponent
+        parameter: interfaces.Standard.configure.implementation.primary
+        format: "scripts/VNF_scripts/{}/standalone/configure.yaml"
   requirements:
     vnfExtCpd:
       - type: tosca.nodes.network.Port
@@ -169,10 +177,10 @@ nfv.nodes.VNFD:
 
 nfv.nodes.VNFD.DHCP:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/DHCP.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_DHCP.yaml"
       modifiableAttributes.extension.defaultLeaseTime:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.DHCP_defaultLeaseTime
@@ -201,10 +209,10 @@ nfv.nodes.VNFD.DHCP:
 
 nfv.nodes.VNFD.DNS:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/DNS.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_DNS.yaml"
       modifiableAttributes.extension.internalNetAddr:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.DNS_internalNetAddr
@@ -223,10 +231,10 @@ nfv.nodes.VNFD.DNS:
 
 nfv.nodes.VNFD.Firewall:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/Firewall.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_firewall.yaml"
       modifiableAttributes.extension.standard_rules:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.Firewall_standard_rules
@@ -236,10 +244,10 @@ nfv.nodes.VNFD.Firewall:
 
 nfv.nodes.VNFD.DPI:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/Firewall.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_firewall.yaml"
       modifiableAttributes.extension.standard_rules:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.Firewall_standard_rules
@@ -249,20 +257,20 @@ nfv.nodes.VNFD.DPI:
 
 nfv.nodes.VNFD.Nat:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/Nat.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_nat.yaml"
       modifiableAttributes.extension.rules:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.Nat_rules
 
 nfv.nodes.VNFD.Ntop_analyze:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/Ntop.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_ntop.yaml"
       modifiableAttributes.extension.endpointPort:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.Ntop_analyze_endpointPort
@@ -275,10 +283,10 @@ nfv.nodes.VNFD.Ntop_analyze:
 
 nfv.nodes.VNFD.Tshark_analyze:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/Tshark.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_tshark.yaml"
       modifiableAttributes.extension.duration:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.Tshark_analyze_duration
@@ -297,10 +305,10 @@ nfv.nodes.VNFD.Tshark_analyze:
 
 nfv.nodes.VNFD.Routing:
    properties:
-      modifiableAttributes.extension:
+      vnfProvider:
         - type: tosca.nodes.SoftwareComponent
-          parameter: interfaces.Standard.configure.implementation
-          format: "VNF_types/Routing.yaml"
+          parameter: interfaces.Standard.configure.implementation.dependencies.[0]
+          format: "configure_routing.yaml"
       modifiableAttributes.extension.rules:
         - type: tosca.nodes.SoftwareComponent
           parameter: interfaces.Standard.configure.inputs.Routing_rules

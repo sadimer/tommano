@@ -88,7 +88,7 @@ topology_template:
       type: nfv.nodes.VNFD.DHCP
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: cumulus
         vnfProductName: DHCP
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -111,7 +111,7 @@ topology_template:
       type: nfv.nodes.VNFD.Nat
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: cumulus
         vnfProductName: nat
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -185,7 +185,7 @@ topology_template:
       type: nfv.nodes.VNFD.Routing
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: cumulus
         vnfProductName: Routing
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -205,7 +205,7 @@ topology_template:
       type: nfv.nodes.VNFD.DNS
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: cumulus
         vnfProductName: DNS
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -226,7 +226,7 @@ topology_template:
       type: nfv.nodes.VNFD.Firewall
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: cumulus
         vnfProductName: firewall
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -246,7 +246,7 @@ topology_template:
       type: nfv.nodes.VNFD.Ntop_analyze
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: cumulus
         vnfProductName: Ntop_analyze
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -265,7 +265,7 @@ topology_template:
       type: nfv.nodes.VNFD.Tshark_analyze
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: cumulus
         vnfProductName: Tshark_analyze
         vnfSoftwareVersion: v1.0
         modifiableAttributes:

@@ -5,8 +5,8 @@ controller:
   port: "8181"
 vnf_types:
   Nat: napt44
-  Ntop_analyze: napt44
-  Tshark_analyze: napt44
+  Ntop_analyze: qos
+  Tshark_analyze: qos
   Routing: Cisco-vASA
   Firewall: firewall
   DPI: dpi
@@ -21,8 +21,8 @@ tosca:
       host:
         properties:
           disk_size: 50 GiB
-          mem_size: 2 GiB
-          num_cpus: 1
+          mem_size: 4 GiB
+          num_cpus: 2
       os:
         properties:
           type: ubuntu
@@ -33,9 +33,3 @@ tosca:
     type: tosca.nodes.SoftwareComponent
     requirements:
       - host: controller
-    interfaces:
-      Standard:
-        configure:
-          implementation: configure_controller.yaml
-        create:
-          implementation: create_controller.yaml

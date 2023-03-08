@@ -19,17 +19,6 @@ topology_template:
         - vnfdId: nat
         - cpdPoolId: pool
         - nfpd: SFC1
-        - nfpd: SFC2
-
-    SFC2:
-      type: nfv.nodes.ns.nfpd
-      properties:
-        nfpRule:
-          - name: http
-            proto: 6
-            dprange: [80, 80]
-            siprange: 10.100.156.0/22
-            diprange: 10.100.156.0/22
 
     SFC1:
       type: nfv.nodes.ns.nfpd
@@ -41,9 +30,11 @@ topology_template:
             siprange: 10.100.156.0/22
             diprange: 10.100.156.0/22
       requirements: # здесь все узлы входящие в цепочку
+        - cpd: ext_external_cpd_cl_1 # первый и последний узел цепочки - классификатор
         - cpd: ext_external_cpd_vnf_1
         - cpd: ext_external_cpd_vnf_2
         - cpd: ext_external_cpd_vnf_3
+        - cpd: ext_external_cpd_cl_2 # первый и последний узел цепочки - классификатор
 
     pool:
       type: nfv.nodes.ns.cpdPool
@@ -53,7 +44,7 @@ topology_template:
         - cpdId: ext_external_cpd_vnf_3
         - cpdId: ext_external_cpd_cl_2
         - cpdId: ext_external_cpd_cl_1
-        - cpdId: external_cpd_f # классификатор это то что торчит ext cpd наружу, а если ext cpd нет это forwarder
+        - cpdId: ext_external_cpd_f
 
     Client:
       type: nfv.nodes.VDU
@@ -64,13 +55,13 @@ topology_template:
             numVirtualCpu: 1
             cpuArchitecture: x86_64
           virtualMemory:
-            virtualMemSize: 1 GiB
+            virtualMemSize: 2 GiB
         virtualStorageDesc:
           id: sd_cl_1
           sizeOfStorage: 10 GiB
         swImageDesc:
           operatingSystem: ubuntu
-          version: openflow
+          version: 14.04.6.openflow
           id: sw_cl_1
 
     Server:
@@ -82,13 +73,13 @@ topology_template:
             numVirtualCpu: 1
             cpuArchitecture: x86_64
           virtualMemory:
-            virtualMemSize: 1 GiB
+            virtualMemSize: 2 GiB
         virtualStorageDesc:
           id: sd_cl_2
           sizeOfStorage: 10 GiB
         swImageDesc:
           operatingSystem: ubuntu
-          version: openflow
+          version: 14.04.6.openflow
           id: sw_cl_2
 
     SN_SFF:
@@ -100,13 +91,13 @@ topology_template:
             numVirtualCpu: 1
             cpuArchitecture: x86_64
           virtualMemory:
-            virtualMemSize: 1 GiB
+            virtualMemSize: 2 GiB
         virtualStorageDesc:
           id: sd_f
           sizeOfStorage: 10 GiB
         swImageDesc:
           operatingSystem: ubuntu
-          version: openflow
+          version: 14.04.6.openflow
           id: sw_f
 
     SN_SF1:
@@ -118,13 +109,13 @@ topology_template:
             numVirtualCpu: 1
             cpuArchitecture: x86_64
           virtualMemory:
-            virtualMemSize: 1 GiB
+            virtualMemSize: 2 GiB
         virtualStorageDesc:
           id: sd_1
           sizeOfStorage: 10 GiB
         swImageDesc:
           operatingSystem: ubuntu
-          version: openflow
+          version: 14.04.6.openflow
           id: sw_1
 
     SN_SF2:
@@ -136,13 +127,13 @@ topology_template:
             numVirtualCpu: 1
             cpuArchitecture: x86_64
           virtualMemory:
-            virtualMemSize: 1 GiB
+            virtualMemSize: 2 GiB
         virtualStorageDesc:
           id: sd_2
           sizeOfStorage: 10 GiB
         swImageDesc:
           operatingSystem: ubuntu
-          version: openflow
+          version: 14.04.6.openflow
           id: sw_2
 
     SN_SF3:
@@ -154,13 +145,13 @@ topology_template:
             numVirtualCpu: 1
             cpuArchitecture: x86_64
           virtualMemory:
-            virtualMemSize: 1 GiB
+            virtualMemSize: 2 GiB
         virtualStorageDesc:
           id: sd_3
           sizeOfStorage: 10 GiB
         swImageDesc:
           operatingSystem: ubuntu
-          version: openflow
+          version: 14.04.6.openflow
           id: sw_3
 
     external_vl:
@@ -195,6 +186,14 @@ topology_template:
             numberOfIpAddress: 1
       requirements:
         - intCpd: SN_SFF
+        - intVirtualLinkDesc: external_vl
+
+    ext_external_cpd_f:
+      type: nfv.nodes.VnfExtCpd
+      properties:
+        cpdId: cpd_f
+      requirements:
+        - VDUCpd: external_cpd_f
         - intVirtualLinkDesc: external_vl
 
     external_cpd_cl_1:
@@ -325,7 +324,7 @@ topology_template:
     DPI: # TODO: тут может возникать проблема с лишними software componets
       type: nfv.nodes.VNFD.DPI
       properties:
-        vnfProvider: clouni
+        vnfProvider: ubuntu
         vnfProductName: DPI
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -346,7 +345,7 @@ topology_template:
     firewall:
       type: nfv.nodes.VNFD.Firewall
       properties:
-        vnfProvider: clouni
+        vnfProvider: ubuntu
         vnfProductName: firewall
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -368,7 +367,7 @@ topology_template:
       type: nfv.nodes.VNFD.Nat
       properties:
         vnfdId: vnfd_0
-        vnfProvider: clouni
+        vnfProvider: ubuntu
         vnfProductName: ntop
         vnfSoftwareVersion: v1.0
         modifiableAttributes:
@@ -379,6 +378,25 @@ topology_template:
                 sourceAddrPr: 10.100.157.40/22
                 destAddrPr: 10.100.157.140/22
                 protocol: tcp
+      requirements:
+        - vnfExtCpd: ext_external_cpd_vnf_3
+        - vdu: SN_SF3
+
+    ntop:
+      type: nfv.nodes.VNFD.Ntop_analyze
+      properties:
+        vnfdId: vnfd_0
+        vnfProvider: ubuntu
+        vnfProductName: Ntop_analyze
+        vnfSoftwareVersion: v1.0
+        modifiableAttributes:
+          extension:
+            endpointPort: 3000
+            internalNetCidr:
+              - { get_property: [ external_vl, cidrData, cidr ] }
+            interfacesNames:
+              - eth0
+              - swp1
       requirements:
         - vnfExtCpd: ext_external_cpd_vnf_3
         - vdu: SN_SF3
