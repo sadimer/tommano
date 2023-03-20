@@ -43,7 +43,7 @@
     ip link set br0 up
     
     ovs-vsctl add-port br0 vxlan0
-    ovs-vsctl set interface vxlan0 type=vxlan options:remote_ip=flow options:exts=gpe options:nshc1=flow options:nshc2=flow options:nshc3=flow options:nshc4=flow options:nsi=flow options:nsp=flow options:key=flow options:dst_port="6633"
+    ovs-vsctl set interface vxlan0 type=vxlan options:remote_ip=flow options:exts=gpe options:key=flow options:dst_port="6633"
     ovs-vsctl add-port br0 veth0
     ovs-vsctl add-port br0 veth3
     ovs-vsctl add-port br0 xeth0

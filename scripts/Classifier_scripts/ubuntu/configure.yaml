@@ -1,12 +1,17 @@
-- name: Restart service openvswitch
-  service:
-    state: restarted
-    name: openvswitch-switch
-  become: yes
-
-- name: Veth configure
+- name: Veth configure # TODO: переписать на нормальный Ansible
   become: yes
   shell: |
+    ip netns exec app ip link set dev lo down
+    ip netns exec app ip link set dev veth-app down
+    ip netns exec app ifconfig veth-app down
+    ip link set dev veth-br down
+    ovs-vsctl del-port br-sfc veth-br
+    ip link del veth-app
+    ip link del veth-br
+    ip netns del app
+    /etc/init.d/openvswitch-switch stop
+    rm -rf /etc/openvswitch/conf.db
+    /etc/init.d/openvswitch-switch start
     ovs-vsctl add-br br-sfc
     ovs-vsctl set-manager tcp:{{ controller['ip-address'] }}:6640
     ip netns add app
