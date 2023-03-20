@@ -880,7 +880,7 @@ class ToscaNormativeTemplate(object):
             controller_provider=self.controller_provider,
         )
         # for debug
-        print(json.dumps(odl_config, ensure_ascii=False, indent=4))
+        # print(json.dumps(odl_config, ensure_ascii=False, indent=4))
 
     @staticmethod
     def split_sf_sff(sf_addresses, sff_addresses):
@@ -1123,63 +1123,6 @@ class ToscaNormativeTemplate(object):
         if len(self.network_service_keys) > 0:
             self.create_config_json()
         for key in self.new_element_templates:
-            if (
-                self.new_element_templates[key].get("type")
-                == "tosca.nodes.SoftwareComponent"
-                and len(self.network_service_keys) > 0
-            ):
-                interfaces = self.new_element_templates[key].get("interfaces")
-                if interfaces:
-                    if (
-                        interfaces.get("Standard")
-                        and interfaces.get("Standard").get("create")
-                        and "VNF"
-                        in interfaces.get("Standard")
-                        .get("create")
-                        .get("implementation")
-                    ):
-                        self.new_element_templates[key] = utils.deep_update_dict(
-                            self.new_element_templates[key],
-                            {
-                                "interfaces": {
-                                    "Standard": {
-                                        "configure": {
-                                            "implementation": {
-                                                "primary": self.new_element_templates[
-                                                    key
-                                                ]["interfaces"]["Standard"][
-                                                    "configure"
-                                                ][
-                                                    "implementation"
-                                                ][
-                                                    "primary"
-                                                ].replace(
-                                                    "standalone", "service"
-                                                )
-                                            }
-                                        },
-                                        "create": {  # да опять костыль..... хз уже как лучше это сделать
-                                            "implementation": self.new_element_templates[
-                                                key
-                                            ][
-                                                "interfaces"
-                                            ][
-                                                "Standard"
-                                            ][
-                                                "create"
-                                            ][
-                                                "implementation"
-                                            ].replace(
-                                                "standalone", "service"
-                                            )
-                                        },
-                                    }
-                                },
-                                "requirements": [
-                                    {"dependency": "software_for_controller"}
-                                ],
-                            },
-                        )
             if key in element_templates:
                 element_templates.pop(key)
         for key in self.additional_keys:
@@ -1194,6 +1137,73 @@ class ToscaNormativeTemplate(object):
         logging.info("Successfully delete unused nodes.")
 
         if len(self.network_service_keys) > 0:
+            for key in self.new_element_templates:
+                if (
+                    self.new_element_templates[key].get("type")
+                    == "tosca.nodes.SoftwareComponent"
+                    and len(self.network_service_keys) > 0
+                ):
+                    interfaces = self.new_element_templates[key].get("interfaces")
+                    if interfaces:
+                        if (
+                            interfaces.get("Standard")
+                            and interfaces.get("Standard").get("create")
+                            and "VNF"
+                            in interfaces.get("Standard")
+                            .get("create")
+                            .get("implementation")
+                        ):
+                            self.new_element_templates[key] = utils.deep_update_dict(
+                                self.new_element_templates[key],
+                                {
+                                    "interfaces": {
+                                        "Standard": {
+                                            "configure": {
+                                                "implementation": {
+                                                    "primary": self.new_element_templates[
+                                                        key
+                                                    ][
+                                                        "interfaces"
+                                                    ][
+                                                        "Standard"
+                                                    ][
+                                                        "configure"
+                                                    ][
+                                                        "implementation"
+                                                    ][
+                                                        "primary"
+                                                    ].replace(
+                                                        "standalone", "service"
+                                                    )
+                                                }
+                                            },
+                                            "create": {  # да опять костыль..... хз уже как лучше это сделать
+                                                "implementation": self.new_element_templates[
+                                                    key
+                                                ][
+                                                    "interfaces"
+                                                ][
+                                                    "Standard"
+                                                ][
+                                                    "create"
+                                                ][
+                                                    "implementation"
+                                                ].replace(
+                                                    "standalone", "service"
+                                                )
+                                            },
+                                        }
+                                    },
+                                },
+                            )
+                            self.new_element_templates[key] = utils.deep_update_dict(
+                                self.new_element_templates[key],
+                                {
+                                    "requirements": [
+                                        {"dependency": "software_for_controller"}
+                                    ],
+                                },
+                            )
             utils.deep_update_dict(
                 self.tosca_controller.get("software_for_controller"),
                 {

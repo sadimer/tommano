@@ -1,18 +1,3 @@
-- name: Wait for http controller port to be ready
-  wait_for:
-    host: "{{ controller['ip-address'] }}"
-    port: "{{ controller['port'] }}"
-
-- name: Wait for ovs controller port to be ready
-  wait_for:
-    host: "{{ controller['ip-address'] }}"
-    port: 6653
-
-- name: Wait for final controller port to be ready
-  wait_for:
-    host: "{{ controller['ip-address'] }}"
-    port: 9999
-
 - name: REST API to /restconf/operations/rendered-service-path:read-rendered-service-path-first-hop
   uri:
     body: '{"input": {"name": {{ item.key }}}}'

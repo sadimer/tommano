@@ -39,3 +39,18 @@
     ./bin/stop
     rm -rf data/ snapshots/ journal/ instances/ karaf.pid lock
     setsid ./bin/start &
+
+- name: Wait for http controller port to be ready
+  wait_for:
+    host: localhost
+    port: 8181
+
+- name: Wait for ovs controller port to be ready
+  wait_for:
+    host: localhost
+    port: 6653
+
+- name: Wait for final controller port to be ready
+  wait_for:
+    host: localhost
+    port: 9999

@@ -375,50 +375,6 @@ def generate_restconf_files_for_create(json_data, output_dir, controller_provide
             yaml.dump(
                 [
                     {
-                        "name": "Wait for http controller port to be ready",
-                        "wait_for": {
-                            "host": gInput["controller"][
-                                "ip-address"
-                            ],  # TODO переделать на проброс переменных, убрать gInput
-                            "port": gInput["controller"]["port"],
-                        },
-                    }
-                ]
-            ),
-            file=op_fp,
-        )
-        print(
-            yaml.dump(
-                [
-                    {
-                        "name": "Wait for ovs controller port to be ready",
-                        "wait_for": {
-                            "host": gInput["controller"]["ip-address"],
-                            "port": 6653,
-                        },
-                    }
-                ]
-            ),
-            file=op_fp,
-        )
-        print(
-            yaml.dump(
-                [
-                    {
-                        "name": "Wait for final controller port to be ready",
-                        "wait_for": {
-                            "host": gInput["controller"]["ip-address"],
-                            "port": 9999,
-                        },
-                    }
-                ]
-            ),
-            file=op_fp,
-        )
-        print(
-            yaml.dump(
-                [
-                    {
                         "name": "REST API to %s" % get_service_nodes_uri(),
                         "uri": {
                             "url": "http://"
