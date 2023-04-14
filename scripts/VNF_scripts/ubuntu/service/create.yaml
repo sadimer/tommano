@@ -1,0 +1,58 @@
+- name: Install required packages
+  become: yes
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop: ['curl', 'git', 'bridge-utils']
+
+- name: Restart service openvswitch
+  service:
+    state: restarted
+    name: openvswitch-switch
+  become: yes
+
+- name: Veth configure # TODO: переписать на нормальный Ansible?
+  become: yes
+  shell: |
+    ip link add veth0 type veth peer name veth1
+    ip link set dev veth0 up
+    
+    ip link add veth2 type veth peer name veth3
+    ip link set dev veth3 up
+    
+    ip link add xeth0 type veth peer name xeth1
+    ip link set dev xeth0 up
+    ip link set dev xeth1 up
+    
+    ip netns add sfc
+    ip link set veth1 netns sfc
+    ip link set veth2 netns sfc
+    
+    ip netns exec sfc brctl addbr br0
+    ip netns exec sfc brctl addif br0 veth1
+    ip netns exec sfc brctl addif br0 veth2
+    
+    ip netns exec sfc ifconfig br0 up
+    ip netns exec sfc ifconfig veth1 up
+    ip netns exec sfc ifconfig veth2 up
+    
+    ip netns exec sfc ip addr add 1.2.3.4/32 dev br0
+    
+    ovs-vsctl add-br br0
+    ip link set br0 up
+    
+    ovs-vsctl add-port br0 vxlan0
+    ovs-vsctl set interface vxlan0 type=vxlan options:remote_ip=flow options:exts=gpe options:key=flow options:dst_port="6633"
+    ovs-vsctl add-port br0 veth0
+    ovs-vsctl add-port br0 veth3
+    ovs-vsctl add-port br0 xeth0
+    ovs-vsctl add-port br0 xeth1
+    
+    ovs-vsctl set interface veth0 ofport_request=1
+    ovs-vsctl set interface veth3 ofport_request=2
+    ovs-vsctl set interface xeth0 ofport_request=3
+    ovs-vsctl set interface xeth1 ofport_request=4
+    ovs-vsctl set interface vxlan0 ofport_request=5
+    
+    ovs-ofctl del-flows br0

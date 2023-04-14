@@ -1,0 +1,7 @@
+- name: Install required packages
+  become: yes
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  loop: ['curl', 'git', 'bridge-utils']

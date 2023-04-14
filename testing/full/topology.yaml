@@ -48,7 +48,7 @@ topology_template:
                 destAddr: 8.8.8.8
                 routingPath: FORWARD
                 sourceAddr: 10.10.10.10
-              Firewall_standart_rules:
+              Firewall_standard_rules:
               - action: ACCEPT
                 destAddr: 8.8.8.8
                 destPort: 2202

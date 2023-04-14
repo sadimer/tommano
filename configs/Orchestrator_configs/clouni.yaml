@@ -1,5 +1,3 @@
-configure_node_type: tosca.nodes.SoftwareComponent
-script_type: create
 address_config: port_name
 software_prefix: software_for_
 port_binding_requirement: false

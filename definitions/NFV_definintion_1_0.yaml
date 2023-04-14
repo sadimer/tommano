@@ -1,69 +1,90 @@
 tosca_definitions_version: tosca_simple_yaml_1_0
+# не забывай что тут пока нет affinityOrAntiAffinityGroup, scalingAspect, monitoringParameter, VnfdElementGroup, LinkBitrateRequirements
+# хорошо бы переделать QoS
+# TODO: добавить это
 
-node_types: 
+# TODO: поразмышлять на тему что required true, а что false
+node_types:
+  nfv.nodes.VNFD.DPI:
+    derived_from: nfv.nodes.VNFD.Firewall
+
   nfv.nodes.VNFD.Firewall: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Firewall
+        required: false
     
   nfv.nodes.VNFD.Nat: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Nat
+        required: false
             
   nfv.nodes.VNFD.QoS: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.QoS
+        required: false
               
   nfv.nodes.VNFD.SpamVirus: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.SpamVirus
+        required: false
   
   nfv.nodes.VNFD.DHCP: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.DHCP
+        required: false
   
   nfv.nodes.VNFD.DNS: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.DNS
+        required: false
   
   nfv.nodes.VNFD.Tshark_analyze:
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Tshark_analyze
+        required: false
   
   nfv.nodes.VNFD.Routing: 
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Routing
+        required: false
     
   nfv.nodes.VNFD.Ntop_analyze:
     derived_from: nfv.nodes.VNFD
     properties:
       modifiableAttributes:
         type: nfv.datatypes.VnfInfoModifiableAttributes.Ntop_analyze
+        required: false
     
   nfv.nodes.VNFD:
     derived_from: tosca.nodes.Root
-    properties:
+    capabilities:
       vnfdId:
+        type: nfv.capabilities.vnfd
+    properties:
+      vnfdId: # нужно ли такое дублирование?
         type: string
         required: false
       vnfProvider:
         type: string
-        required: false
+        default: cumulus
+        constraints:
+          - valid_values: [ cumulus, ubuntu ]
       vnfProductName:
         type: string
         required: false
@@ -90,7 +111,153 @@ node_types:
           node: nfv.nodes.VDU
           relationships: nfv.relationships.vdu
           occurrences: [ 1, UNBOUNDED ]
-    
+
+  nfv.nodes.ns.NSD: # NOTE: monitoredInfo и autoScalingRule пока не добавлены
+    derived_from: tosca.nodes.Root
+    properties:
+      nsdIdentifier:
+        type: string
+        required: true
+      designer:
+        type: string
+        required: false
+      nsdName:
+        type: string
+        required: false
+      nsdInvariantId:
+        type: string
+        required: false
+      lifeCycleManagementScript: # надеюсь сделать из этого интерфейс в последствии
+        type: string
+        required: false
+      security: # появляется не только здесь, перейди на новую версию стандарта и посмотри где еще
+        type: nfv.datatypes.SecurityParameters
+        required: false
+      nsDf:
+        required: false
+        type: list
+        entry_schema:
+          type: nfv.datatypes.NsDf
+    capabilities:
+      nestedNsd:
+        type: nfv.capabilities.nestedNsd
+    requirements: # TODO: PNFD - физические сетевые функции в рамках сервиса
+      - nestedNsdId: # пока не реализовано
+          capability: nfv.capabilities.nestedNsd
+          node: nfv.nodes.ns.NSD
+          relationships: nfv.relationships.nestedNsd
+          occurrences: [ 0, UNBOUNDED ]
+      - vnfdId: # пока никак не влияет, значение имеет то что в vnffg
+          capability: nfv.capabilities.vnfd
+          node: nfv.nodes.VNFD
+          relationships: nfv.relationships.vnfd
+          occurrences: [ 0, UNBOUNDED ]
+      - sapd: # пока не реализовано
+          capability: nfv.capabilities.sapd
+          node: nfv.nodes.ns.sapd
+          relationships: nfv.relationships.sapd
+          occurrences: [ 0, UNBOUNDED ]
+      - virtualLinkDesc:
+          capability: nfv.capabilities.virtualLinkDesc
+          node: nfv.nodes.ns.nsVirtualLinkDesc
+          relationships: nfv.relationships.virtualLinkDesc
+          occurrences: [ 0, UNBOUNDED ]
+      - vnffgd:
+          capability: nfv.capabilities.vnffgd
+          node: nfv.nodes.ns.vnffgd
+          relationships: nfv.relationships.vnffgd
+          occurrences: [ 0, UNBOUNDED ]
+
+  nfv.nodes.ns.vnffgd:
+    derived_from: tosca.nodes.Root
+    capabilities:
+      vnffgd:
+        type: nfv.capabilities.vnffgd
+    properties:
+      vnffgdId:
+        type: string
+        required: false
+    requirements: # TODO: PNFD - физические сетевые функции в рамках сервиса
+      - vnfdId:
+          capability: nfv.capabilities.vnfd
+          node: nfv.nodes.VNFD
+          relationships: nfv.relationships.vnfd
+          occurrences: [ 0, UNBOUNDED ]
+      - virtualLinkDescId:
+          capability: nfv.capabilities.virtualLinkDesc
+          node: nfv.nodes.ns.nsVirtualLinkDesc
+          relationships: nfv.relationships.virtualLinkDesc
+          occurrences: [ 0, UNBOUNDED ]
+      - cpdPoolId:
+          capability: nfv.capabilities.cpdPool
+          node: nfv.nodes.ns.cpdPool
+          relationships: nfv.relationships.cpdPool
+          occurrences: [ 1, UNBOUNDED ]
+      - nfpd:
+          capability: nfv.capabilities.nfpd
+          node: nfv.nodes.ns.nfpd
+          relationships: nfv.relationships.nfpd
+          occurrences: [ 0, UNBOUNDED ]
+
+  nfv.nodes.ns.nfpd:
+    derived_from: tosca.nodes.Root
+    capabilities:
+      nfpd:
+        type: nfv.capabilities.nfpd
+    properties:
+      nfpId:
+        type: string
+        required: false
+      nfpRule:
+        type: list
+        required: false
+        entry_schema:
+          type: nfv.datatypes.nfpRule # по стандарту тут еще должна быть поддержка and, not, пока не придумал как наложить на тоску
+          # в данном случае лист используется как перечисление or
+    requirements:
+      - cpd:
+          capability: nfv.capabilities.cpd
+          node: nfv.nodes.cpd
+          relationships: nfv.relationships.cpd
+          occurrences: [ 1, UNBOUNDED ]
+
+  nfv.nodes.ns.cpdPool:
+    derived_from: tosca.nodes.Root
+    capabilities:
+      cpdPoolId:
+        type: nfv.capabilities.cpdPool
+    properties:
+      cpdPoolId: # снова дублирование
+        type: string
+        required: false
+    requirements:
+      - cpdId:
+          capability: nfv.capabilities.cpd
+          node: nfv.nodes.cpd
+          relationships: nfv.relationships.cpd
+          occurrences: [ 1, UNBOUNDED ]
+
+  nfv.nodes.ns.sapd: # пока не будем сюда смотреть
+    derived_from: tosca.nodes.Root
+    capabilities:
+      sapd:
+        type: nfv.capabilities.sapd
+    properties:
+      sapAddressAssignment:
+        type: boolean
+        required: true
+    requirements:
+      - nsVirtualLinkDesc:
+          capability: nfv.capabilities.virtualLinkDesc
+          node: nfv.nodes.ns.nsVirtualLinkDesc
+          relationships: nfv.relationships.virtualLinkDesc
+          occurrences: [ 0, 1 ]
+      - associatedCpdId:
+          capability: nfv.capabilities.associatedCpd
+          node: nfv.nodes.cpd
+          relationships: nfv.relationships.associatedCpd
+          occurrences: [ 0, 1 ]
+
   nfv.nodes.VDU:
     derived_from: tosca.nodes.Root
     properties:
@@ -120,6 +287,11 @@ node_types:
         
   nfv.nodes.Cpd:
     derived_from: tosca.nodes.Root
+    capabilities:
+      cpd:
+        type: nfv.capabilities.cpd
+      associatedCpd:
+        type: nfv.capabilities.associatedCpd
     properties:
       cpdId:
         type: string
@@ -171,6 +343,22 @@ node_types:
           relationships: nfv.relationships.intVirtualLinkDesc
           occurrences: [ 1, 1 ]
 
+  nfv.nodes.nsVirtualLinkDesc:
+    derived_from: nfv.nodes.VnfVirtualLinkDesc
+    properties:
+      vitualLinkDescProvider:
+        type: string
+        required: false
+      virtuaLinkDescVersion:
+        type: string
+        required: false
+      security:
+        type: nfv.datatypes.SecurityParameters
+        required: false
+    capabilities:
+      intVirtualLinkDesc:
+        type: nfv.capabilities.virtualLinkDesc
+
   nfv.nodes.VnfVirtualLinkDesc:
     derived_from: tosca.nodes.Root
     properties:
@@ -189,11 +377,49 @@ node_types:
       description:
         type: string
         required: false
+      testAccess:
+        type: string
+        required: false
     capabilities: 
       intVirtualLinkDesc:
         type: nfv.capabilities.intVirtualLinkDesc
 
 data_types:
+  nfv.datatypes.nfpRule:
+    derived_from: tosca.datatypes.Root
+    properties:
+      name:
+        type: string
+        required: true
+      proto:
+        type: integer # сделать удобнее потом: tcp, ssh etc, есть в ветке test
+        required: true
+      sprange:
+        type: list
+        default: [ 0, 0 ]
+        entry_schema:
+          type: integer
+          constraints:
+            - in_range: [ 0, 65535 ]
+      dprange:
+        type: list
+        default: [ 0, 0 ]
+        entry_schema:
+          type: integer
+          constraints:
+            - in_range: [ 0, 65535 ]
+      siprange:
+        type: string
+        default: "0.0.0.0/0"
+      diprange:
+        type: string
+        default: "0.0.0.0/0"
+      direction:
+        type: string
+        default: Bidirectional
+        constraints:
+          - valid_values: [ Forward, Reverse, Bidirectional ]
+
   nfv.datatypes.virtualComputeDesc.VirtualMemoryData:
     derived_from: tosca.datatypes.Root
     properties:
@@ -274,7 +500,7 @@ data_types:
         type: scalar-unit.size
         required: true
         constraints: 
-           - in_range: [ 20 GiB, 200 GiB ]
+           - in_range: [ 5 GiB, 200 GiB ]
       swImageDesc:
         type: nfv.datatypes.VirtualStorageDesc.swImageDesc
         required: false
@@ -324,9 +550,12 @@ data_types:
         type: nfv.datatypes.AddressData.L3AddressData
         required: false
         
-  nfv.datatypes.CidrData: # не каноничный тип, использовать не обязательно, если не указан, генерируем рандомно!!!
+  nfv.datatypes.CidrData: # не каноничный тип, использовать не обязательно, если не указан, генерируем рандомно
     derived_from: tosca.datatypes.Root
     properties:
+      segmentationId:
+        type: integer
+        required: false
       networkName:
         type: string
         required: false
@@ -346,7 +575,7 @@ data_types:
         type: string
         default: geneve
         constraints:
-          - valid_values: [ geneve, VLAN ]
+          - valid_values: [ geneve, vlan ]
         
   nfv.datatypes.VirtualNetworkInterfaceRequirements:
     derived_from: tosca.datatypes.Root
@@ -538,18 +767,18 @@ data_types:
   nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall:
     derived_from: nfv.datatypes.VnfInfoModifiableAttributes.extension
     properties:
-      standart_rules:
+      standard_rules:
         type: list
         required: false
         entry_schema:
-          type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall.StandartRule
+          type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall.StandardRule
       dpi_rules:
         type: list
         required: false
         entry_schema:
           type: nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall.DpiRule
       
-  nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall.StandartRule:
+  nfv.datatypes.VnfInfoModifiableAttributes.extension.Firewall.StandardRule:
     derived_from: tosca.datatypes.Root
     properties:
       action:
@@ -683,8 +912,13 @@ data_types:
       layerProtocol: 
         type: string
         default: IPV4
+        constraints: # TODO: подумать с точки зрения стандарта можно сюда впилить туннельные типы для sfc?
+          - valid_values: [ Ethernet, VxLAN, GRE, MPLS, ODU2, IPV4, IPV6, Pseudo-Wire ]
+      flowPattern:
+        type: string
+        required: false
         constraints:
-          - valid_values: [ Ethernet, MPLS, ODU2, IPV4, IPV6, Pseudo-Wire ]
+          - valid_values: [ Line, Tree, Mesh ]
           
   nfv.datatypes.VnfVirtualLinkDesc.VirtualLinkDescFlavour:
     derived_from: tosca.datatypes.Root
@@ -705,7 +939,120 @@ data_types:
       maxNumberOfInstances:
         type: integer
         default: 1
-  
+
+  nfv.datatypes.VNFDf.virtualLinkProfile:
+    derived_from: tosca.datatypes.Root
+    properties:
+      vnfVirtualLinkDescId:
+        type: string
+        required: false
+      flavourId:
+        type: string
+        required: false
+
+  nfv.datatypes.NsDf.vnfProfile:
+    derived_from: nfv.datatypes.VNFDf.vduProfile
+    properties:
+      instantiationLevel:
+        type: nfv.datatypes.VNFDf.instantiationLevel
+        required: false
+      nsVirtualLinkConnectivity:
+        type: nfv.datatypes.NSDf.nsVirtualLinkConnectivity
+        required: false
+
+  nfv.datatypes.NsDf.nsProfile:
+    derived_from: tosca.datatypes.Root
+    properties:
+      groupId:
+        type: string
+        required: false
+
+  nfv.datatypes.NsDf.nsLevel:
+    derived_from: tosca.datatypes.Root
+    properties:
+      nsLevelId:
+        type: string
+        required: false
+      description:
+        type: string
+        required: false
+      vnfToLevelMapping:
+        type: list
+        entry_schema:
+          type: nfv.datatypes.NsDf.vnfToLevelMapping
+      virtualLinkToLevelMapping:
+        type: list
+        entry_schema:
+          type: nfv.datatypes.NsDf.virtualLinkToLevelMapping
+      nsToLevelMapping:
+        type: list
+        entry_schema:
+          type: nfv.datatypes.NsDf.nsToLevelMapping
+
+  nfv.datatypes.NsDf.vnfToLevelMapping:
+    derived_from: tosca.datatypes.Root
+    properties:
+      vnfProfileId:
+        type: nfv.datatypes.NsDf.vnfProfile
+        required: true
+      numberOfInstances:
+        type: integer
+        required: true
+
+  nfv.datatypes.NsDf.virtualLinkToLevelMapping:
+    derived_from: tosca.datatypes.Root
+    properties:
+      virtualLinkProfileId:
+        type: nfv.datatypes.VNFDf.virtualLinkProfile
+        required: true
+      bitRateRequirements:
+        required: true
+        type: nfv.datatypes.bitRateRequirements
+
+  nfv.datatypes.NsDf.nsToLevelMapping:
+    derived_from: tosca.datatypes.Root
+    properties:
+      nsProfileId:
+        type: nfv.datatypes.NsDf.nsProfile
+        required: true
+      numberOfInstances:
+        type: integer
+        required: true
+
+  nfv.datatypes.bitRateRequirements:
+    derived_from: tosca.datatypes.Root
+    properties:
+      root:
+        type: integer
+        required: true
+      leaf:
+        type: integer
+        required: false
+
+  nfv.datatypes.NsDf.dependencies:
+    derived_from: tosca.datatypes.Root
+    properties:
+      primaryId:
+        type: list
+        required: true
+        # entry_schema:
+          # type: nfv.datatypes.NsDf.vnfProfile or nfv.datatypes.NsDf.nsProfile
+      secondaryId:
+        type: list
+        required: true
+        # entry_schema:
+        # type: nfv.datatypes.NsDf.vnfProfile or nfv.datatypes.NsDf.nsProfile
+
+  nfv.datatypes.NsDf.nsVirtualLinkConnectivity: # вот это очень плохо, так как они имеют в виду явную ссылку на вирутальную сеть NS и ее профиль
+    derived_from: tosca.datatypes.Root
+    properties:
+      virtualLinkProfileId:
+        type: nfv.datatypes.VNFDf.virtualLinkProfile
+        required: true
+      cpdId:
+        type: integer # я не могу здесь сделать ссылку на cpd и тем более вложить его сюда, все это возможно только
+                      # в предположении что различные DF нам не очень понадобятся
+        required: true
   nfv.datatypes.VNFDf.instantiationLevel:
     derived_from: tosca.datatypes.Root
     properties:
@@ -718,11 +1065,54 @@ data_types:
       numberOfInstances:
         type: integer
         default: 1
+
+  nfv.datatypes.SecurityParameters:
+    derived_from: tosca.datatypes.Root
+    properties:
+      signature:
+        type: string
+        required: true
+      algorithm:
+        type: string
+        required: true
+      certificate: # artifacts? сделай поддержку в Clouni
+        type: string
+        required: false
   
   nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.instantiateVnfOpConfig:
     derived_from: tosca.datatypes.Root
     properties:
       parameter: 
+        type: string
+        required: false
+
+  nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.scaleVnfOpConfig:
+    derived_from: tosca.datatypes.Root
+    properties:
+      parameter:
+        type: string
+        required: false
+      scalingByMoreThanOneStepSupported:
+        type: boolean
+        required: false
+
+  nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.scaleVnfToLevelOpConfig:
+    derived_from: tosca.datatypes.Root
+    properties:
+      parameter:
+        type: string
+        required: false
+      arbitraryTargetLevelsSupported:
+        type: boolean
+        required: false
+
+  nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.healVnfOpConfig:
+    derived_from: tosca.datatypes.Root
+    properties:
+      parameter:
+        type: string
+        required: false
+      cause:
         type: string
         required: false
 
@@ -738,7 +1128,7 @@ data_types:
       maxRecommendedGracefulTerminationTimeout:
         type: integer
         default: 100
-        
+
   nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.operateVnfOpConfig:
     derived_from: tosca.datatypes.Root
     properties:
@@ -752,11 +1142,20 @@ data_types:
         type: integer
         default: 100
   
-  nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration:
+  nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration: # TODO: перейти на TOSCA интерфейсы и операции
     derived_from: tosca.datatypes.Root
     properties:
       instantiateVnfOpConfig:
         type: nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.instantiateVnfOpConfig
+        required: false
+      scaleVnfOpConfig:
+        type: nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.scaleVnfOpConfig
+        required: false
+      scaleVnfToLevelOpConfig:
+        type: nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.scaleVnfToLevelOpConfig
+        required: false
+      healVnfOpConfig:
+        type: nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.healVnfOpConfig
         required: false
       terminateVnfOpConfig:
         type: nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.terminateVnfOpConfig
@@ -764,8 +1163,44 @@ data_types:
       operateVnfOpConfig:
         type: nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration.operateVnfOpConfig
         required: false
-  
-  nfv.datatypes.VNFDf: # нафиг он сдался не оч понятно, пусть будет как дататайп с required: false
+
+  nfv.datatypes.NsDf: # добавь pnfProfile, scalingAspect, affinityOrAntiAffinityGroup
+    derived_from: tosca.datatypes.Root
+    properties:
+      nsDfId:
+        type: string
+        required: false
+      flavourKey:
+        type: string
+        required: false
+      vnfProfile:
+        type: list
+        required: false
+        entry_schema:
+          type: nfv.datatypes.NsDf.vduProfile # подумай зачем это надо и как сделать профили для всех vnfd из nsd
+      virtualLinkProfile:
+        type: list
+        required: false
+        entry_schema:
+          type: nfv.datatypes.VNFDf.virtualLinkProfile
+      nsInstantiationLevel:
+        type: nfv.datatypes.NsDf.nsLevel
+        required: false
+      defaultNsInstantiationLevelId:
+        type: nfv.datatypes.NsDf.nsLevel
+        required: false
+      nsProfile:
+        type: list
+        required: false
+        entry_schema:
+          type: nfv.datatypes.NsDf.nsProfile
+      dependencies:
+        type: list
+        required: false
+        entry_schema:
+          type: nfv.datatypes.NsDf.dependencies
+
+  nfv.datatypes.VNFDf: # здесь на самом деле должны описываться операции и порядок деплоя - переделать после хуавея
     derived_from: tosca.datatypes.Root
     properties:
       flavourId:
@@ -777,26 +1212,64 @@ data_types:
       vduProfile:
         type: nfv.datatypes.VNFDf.vduProfile
         required: true
+      virtualLinkProfile:
+        type: nfv.datatypes.VNFDf.virtualLinkProfile
+        required: true
       instantiationLevel:
         type: nfv.datatypes.VNFDf.instantiationLevel
         required: true
+      defaultInstantiationLevelId:
+        type: nfv.datatypes.VNFDf.instantiationLevel
+        required: false
       vnfLcmOperationsConfiguration:
         type: nfv.datatypes.VNFDf.vnfLcmOperationsConfiguration
         required: true
-      
+      supportedOperation: # тут будут операции из vnfLcmOperationsConfiguration
+        required: false
+        type: list
+        entry_schema:
+          type: string
+
 capability_types:
   nfv.capabilities.intCpd:
     derived_from: tosca.capabilities.network.Bindable
 
   nfv.capabilities.intVirtualLinkDesc:
     derived_from: tosca.capabilities.network.Linkable
-    
+
+  nfv.capabilities.virtualLinkDesc:
+    derived_from: tosca.capabilities.network.Linkable
+
+  nfv.capabilities.nestedNsd:
+    derived_from: tosca.capabilities.Node
+
+  nfv.capabilities.vnffgd:
+    derived_from: tosca.capabilities.Node
+
+  nfv.capabilities.vnfd:
+    derived_from: tosca.capabilities.Node
+
+  nfv.capabilities.sapd:
+    derived_from: tosca.capabilities.Node
+
   nfv.capabilities.vdu:
     derived_from: tosca.capabilities.Node
     
   nfv.capabilities.vnfExtCpd:
     derived_from: tosca.capabilities.Node
-    
+
+  nfv.capabilities.cpdPool:
+    derived_from: tosca.capabilities.Node
+
+  nfv.capabilities.cpd:
+    derived_from: tosca.capabilities.Node
+
+  nfv.capabilities.associatedCpd:
+    derived_from: tosca.capabilities.Node
+
+  nfv.capabilities.nfpd:
+    derived_from: tosca.capabilities.Node
+
 relationship_types:
   nfv.relationships.intCpd:
     derived_from: tosca.relationships.network.BindsTo
@@ -805,11 +1278,47 @@ relationship_types:
   nfv.relationships.intVirtualLinkDesc:
     derived_from: tosca.relationships.network.LinksTo
     valid_target_types: [ nfv.capabilities.intVirtualLinkDesc ]
-    
+
+  nfv.relationships.virtualLinkDesc:
+    derived_from: tosca.relationships.network.LinksTo
+    valid_target_types: [ nfv.capabilities.virtualLinkDesc ]
+
+  nfv.relationships.vnfd:
+    derived_from: tosca.relationships.network.DependsOn
+    valid_target_types: [ nfv.capabilities.vnfd ]
+
+  nfv.relationships.vnffgd:
+    derived_from: tosca.relationships.network.DependsOn
+    valid_target_types: [ nfv.capabilities.vnffgd ]
+
   nfv.relationships.vdu:
     derived_from: tosca.relationships.DependsOn # или HostedOn?
     valid_target_types: [ nfv.capabilities.vdu ]
+
+  nfv.relationships.sapd:
+    derived_from: tosca.relationships.DependsOn
+    valid_target_types: [ nfv.capabilities.sapd ]
+
+  nfv.relationships.nestedNsd:
+    derived_from: tosca.relationships.DependsOn
+    valid_target_types: [ nfv.capabilities.nestedNsd ]
     
   nfv.relationships.vnfExtCpd:
     derived_from: tosca.relationships.DependsOn
     valid_target_types: [ nfv.capabilities.vnfExtCpd ]
+
+  nfv.relationships.cpd:
+    derived_from: tosca.relationships.DependsOn
+    valid_target_types: [ nfv.capabilities.cpd ]
+
+  nfv.relationships.associatedCpd:
+    derived_from: tosca.relationships.DependsOn
+    valid_target_types: [ nfv.capabilities.associatedCpd ]
+
+  nfv.relationships.cpdPool:
+      derived_from: tosca.relationships.DependsOn
+      valid_target_types: [ nfv.capabilities.cpdPool ]
+
+  nfv.relationships.nfpd:
+      derived_from: tosca.relationships.DependsOn
+      valid_target_types: [ nfv.capabilities.nfpd ]

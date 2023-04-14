@@ -193,7 +193,7 @@ topology_template:
               maxRecommendedGracefulStopTimeout: 100
         modifiableAttributes:
           extension:
-            standart_rules:
+            standard_rules:
               - action: ACCEPT
                 protocol: tcp
                 routingPath: FORWARD

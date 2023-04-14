@@ -1,0 +1,35 @@
+controller:
+  name: controller
+  user: admin
+  password: admin
+  port: "8181"
+vnf_types:
+  Nat: napt44
+  Ntop_analyze: qos
+  Tshark_analyze: qos
+  Routing: Cisco-vASA
+  Firewall: firewall
+  DPI: dpi
+  QoS: qos
+  SpamVirus: ids
+  DHCP: error
+  DNS: error
+tosca:
+  controller:
+    type: tosca.nodes.Compute
+    capabilities:
+      host:
+        properties:
+          disk_size: 50 GiB
+          mem_size: 4 GiB
+          num_cpus: 2
+      os:
+        properties:
+          type: ubuntu
+          version: '18.04'
+  controller_port:
+    type: tosca.nodes.network.Port
+  software_for_controller:
+    type: tosca.nodes.SoftwareComponent
+    requirements:
+      - host: controller
